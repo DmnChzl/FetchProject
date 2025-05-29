@@ -1,0 +1,79 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rebecca-purple: #639;
+  --fraunces-yellow: #fba919;
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+  --gray-950: #0a0a0a;
+}
+
+html {
+  --primary-color: var(--rebecca-purple);
+  --primary-color-25: rgba(102, 51, 153, 0.25);
+  --primary-color-50: rgba(102, 51, 153, 0.50);
+  --primary-color-75: rgba(102, 51, 153, 0.75);
+  --bg-color: #fff;
+  --bg-color-secondary: var(--gray-100);
+  --border-color: var(--gray-200);
+  --text-color: var(--gray-900);
+  --text-color-secondary: var(--gray-700);
+  --text-color-idle: var(--gray-500);
+}
+
+html.dark {
+  --primary-color: var(--fraunces-yellow);
+  --primary-color-25: #fba91940;
+  --primary-color-50: #fba91980;
+  --primary-color-75: #fba919bf;
+  --bg-color: var(--gray-950);
+  --bg-color-secondary: var(--gray-900);
+  --border-color: var(--gray-800);
+  --text-color: var(--gray-100);
+  --text-color-secondary: var(--gray-300);
+  --text-color-idle: var(--gray-500);
+}
+
+::selection {
+  color: var(--bg-color);
+  background-color: var(--primary-color);
+}
+
+.text-fraunces {
+  font-family: "Fraunces", serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  height: 100vh;
+}
+
+#main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+footer {
+  display: flex;
+  padding: 2rem 1rem;
+  background-color: var(--bg-color-secondary);
+}
+
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-color);
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  transition: background-color 5000s ease 0s;
+}

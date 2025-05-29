@@ -1,0 +1,15 @@
+# Env Vars
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Fresh Build Dir
+_fresh/
+
+# NPM Deps
+node_modules/
+
+# Misc
+.DS_Store
+media/
