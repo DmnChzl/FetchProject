@@ -1,5 +1,5 @@
 import { useComputed, useSignal } from "@preact/signals";
-import EmbeddedTable, { CellRecord } from "../components/EmbeddedTable.tsx";
+import EmbeddedTable, { CellRecord, TableHeader } from "../components/EmbeddedTable.tsx";
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import useListFormats from "../hooks/useListFormats.ts";
 import type { ExplicitFormat } from "../models/format.ts";
@@ -15,16 +15,16 @@ interface EmbeddedFormat {
   format: ExplicitFormat;
 }
 
-const TABLE_HEADERS = [
-  "ID",
-  "Extension",
-  "Resolution",
-  "Framerate",
-  "Size",
-  "Audio Codec",
-  "Video Codec",
-  "",
-];
+const TABLE_HEADER: TableHeader<EmbeddedFormat> = {
+  id: "ID",
+  ext: "Extension",
+  res: "Resolution",
+  fps: "Framerate",
+  fileSize: "Size",
+  aCodec: "Audio Codec",
+  vCodec: "Video Codec",
+  format: "",
+};
 
 const isAudioFormat = (format: ExplicitFormat) => format.resolution === "audio_only";
 const isVideoFormat = (format: ExplicitFormat) => Boolean(format.width && format.height);
@@ -179,7 +179,7 @@ export default function ListFormats({ url }: ListFormatsProps) {
       )}
 
       <EmbeddedTable<EmbeddedFormat>
-        headers={TABLE_HEADERS}
+        headers={TABLE_HEADER}
         dataset={datasetFormats.value}
       />
     </div>

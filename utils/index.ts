@@ -22,3 +22,15 @@ export const convertSizeToBytes = (str: string) => {
   const multiplier = BYTE_MAP[unit] || 1;
   return Math.round(Number(value) * multiplier);
 };
+
+type SortOrder = "asc" | "desc";
+
+export function sortByKey<T>(key: keyof T, order: SortOrder = "asc") {
+  const o = order === "asc" ? 1 : -1;
+
+  return (a: T, b: T) => {
+    if (a[key] > b[key]) return 1 * o;
+    if (a[key] < b[key]) return -1 * o;
+    return 0;
+  };
+}

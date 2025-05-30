@@ -1,6 +1,6 @@
 # The Fetch Project
 
-A search engine interface for [>\_ dlp](https://github.com/yt-dlp/yt-dlp).
+A search engine interface based on [>\_ dlp](https://github.com/yt-dlp/yt-dlp).
 
 This app is powered by [Deno Fresh 🍋](https://fresh.deno.dev) and TailwindCSS.
 
