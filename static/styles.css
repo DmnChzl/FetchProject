@@ -1,4 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -61,8 +63,13 @@ html.dark {
   font-family: "Fraunces", serif;
 }
 
+.text-mono {
+  font-family: "Geist Mono", monospace;
+}
+
 body {
   background-color: var(--bg-color);
+  font-family: "Geist", sans-serif;
   height: 100vh;
 }
 

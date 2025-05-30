@@ -1,7 +1,8 @@
 import { Head } from "$fresh/runtime.ts";
+import type { PageProps } from "$fresh/server.ts";
 import Logo from "../components/Logo.tsx";
 
-export default function Error500() {
+export default function Error500Page(_props: PageProps) {
   return (
     <>
       <Head>
@@ -12,7 +13,7 @@ export default function Error500() {
           <Logo width={64} height={64} />
         </a>
         <h1 class="mx-auto text-[48px] font-semibold text-fraunces text-[var(--text-color)]">
-          505!
+          500!
         </h1>
         <h2 class="sr-only">Internal Server Error</h2>
       </div>

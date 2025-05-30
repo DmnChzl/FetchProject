@@ -51,29 +51,35 @@ export default function DownloadableFile(props: DownloadableFileProps) {
 
   return (
     <div class="flex h-full">
-      <div className="m-auto flex flex-col space-y-4">
+      <div className="m-auto flex flex-col">
         <CircularProgress className="mx-auto" progress={stream.value.progress} disabled={outputDestroyed.value} />
-        <div class="flex flex-col items-center space-y-4 w-[256px]">
-          <OutlinedButton
-            className="z-10 py-2 w-[160px]"
-            outlined
-            rounded
-            onClick={() => handleClick(fileName.value)}
-            disabled={loading.value || outputDestroyed.value || isCountDone.value}
-          >
-            Download
-          </OutlinedButton>
+        <div class="flex flex-col items-center mt-[12px] mb-6">
+          {loading.value && (
+            <p class="text-[14px] text-[var(--text-color-secondary)]">
+              Wait For It (Again)...
+            </p>
+          )}
           {isRunning.value && !outputDestroyed.value && (
-            <p class="text-[14px] font-semibold text-[var(--text-color-secondary)]">
-              File Self-Destructs In {remainingTime.value} Sec{remainingTime.value > 1 ? "s" : ""}
+            <p class="text-[14px] text-[var(--text-color-secondary)]">
+              File Self-Destructs In <span class="font-semibold">{remainingTime.value}</span>{" "}
+              Sec{remainingTime.value > 1 ? "s" : ""}
             </p>
           )}
           {!isRunning.value && outputDestroyed.value && (
             <p class="text-[14px] text-[var(--text-color-secondary)]">
-              File Destroyed...
+              File Destroyed !
             </p>
           )}
         </div>
+        <OutlinedButton
+          className="py-2"
+          outlined
+          rounded
+          onClick={() => handleClick(fileName.value)}
+          disabled={loading.value || outputDestroyed.value || isCountDone.value}
+        >
+          Download
+        </OutlinedButton>
       </div>
     </div>
   );

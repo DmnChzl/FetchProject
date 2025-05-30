@@ -1,7 +1,8 @@
 import { Head } from "$fresh/runtime.ts";
+import type { PageProps } from "$fresh/server.ts";
 import Logo from "../components/Logo.tsx";
 
-export default function Error404() {
+export default function Error404Page(_props: PageProps) {
   return (
     <>
       <Head>

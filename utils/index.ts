@@ -34,3 +34,20 @@ export function sortByKey<T>(key: keyof T, order: SortOrder = "asc") {
     return 0;
   };
 }
+
+export const dirSize = async (dir: string) => {
+  let totalSize = 0;
+
+  for await (const entry of Deno.readDir(dir)) {
+    const path = `${dir}/${entry.name}`;
+
+    if (entry.isDirectory) {
+      totalSize += await dirSize(path);
+    } else if (entry.isFile) {
+      const info = await Deno.stat(path);
+      totalSize += info.size ?? 0;
+    }
+  }
+
+  return totalSize;
+};
