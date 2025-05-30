@@ -3,7 +3,6 @@ import CircularProgress from "../components/CircularProgress.tsx";
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import useCountDown from "../hooks/useCountDown.ts";
 import useStreamableFormat from "../hooks/useStreamableFormat.ts";
-import { extractOutput, extractProgressValue } from "../utils/extract.ts";
 import { downloadFile } from "../utils/index.ts";
 
 interface DownloadableFileProps {
@@ -14,6 +13,13 @@ interface DownloadableFileProps {
 
 export default function DownloadableFile(props: DownloadableFileProps) {
   const { data: stream, loading } = useStreamableFormat(props);
+  const fileName = useComputed(() =>
+    stream.value.output.mergedFileName ||
+    stream.value.output.extractedFileName ||
+    stream.value.output.downloadedFileName ||
+    ""
+  );
+
   const outputDestroyed = useSignal(false);
   const { remainingTime, isRunning, start: startCountDown, stop: stopCountDown } = useCountDown({
     duration: 60,
@@ -24,11 +30,6 @@ export default function DownloadableFile(props: DownloadableFileProps) {
   });
 
   const isCountDone = useComputed(() => remainingTime.value === 0);
-  const progress = useComputed(() => extractProgressValue(stream.value) || 0);
-  const output = useComputed(() => extractOutput(stream.value));
-  const fileName = useComputed(() => {
-    return output.value.mergedFileName || output.value.extractedFileName || output.value.downloadedFileName || "";
-  });
 
   useSignalEffect(() => {
     if (!loading.value && fileName.value) {
@@ -51,7 +52,7 @@ export default function DownloadableFile(props: DownloadableFileProps) {
   return (
     <div class="flex h-full">
       <div className="m-auto flex flex-col space-y-4">
-        <CircularProgress className="mx-auto" progress={progress.value} disabled={outputDestroyed.value} />
+        <CircularProgress className="mx-auto" progress={stream.value.progress} disabled={outputDestroyed.value} />
         <div class="flex flex-col items-center space-y-4 w-[256px]">
           <OutlinedButton
             className="z-10 py-2 w-[160px]"

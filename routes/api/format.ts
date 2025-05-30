@@ -1,6 +1,7 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
 import { YT_DLP_COMMAND } from "../../constants/index.ts";
-import { extractOutput } from "../../utils/extract.ts";
+import { OutputNames } from "../../models/output-names.ts";
+import { extractOutput, extractProgressValue } from "../../utils/extract.ts";
 
 const buildArgs = (
   url: string,
@@ -16,6 +17,21 @@ const buildArgs = (
   const formats = [audio, video].filter(Boolean).join("+");
   const inlineArgs = `-f ${formats} ${url} -o ${outDir}/%(id)s.%(ext)s`;
   return inlineArgs.split(" ");
+};
+
+const removeOutput = (output: OutputNames) => {
+  const fileName = output.mergedFileName || output.extractedFileName || output.downloadedFileName;
+
+  if (fileName) {
+    const outDir = Deno.env.get("OUTPUT_DIR");
+    setTimeout(() => {
+      try {
+        Deno.remove(`${outDir}/${fileName}`);
+      } catch {
+        console.log("File Not Found");
+      }
+    }, 70 * 1000); // 70 Seconds
+  }
 };
 
 interface FormatBody {
@@ -48,36 +64,46 @@ export const handler: Handlers = {
       async start(controller) {
         const reader = childProcess.stdout.getReader();
         const decoder = new TextDecoder();
+
         let raw = "";
+        let progress = 0;
+        let output: OutputNames = {
+          downloadedFileName: undefined,
+          extractedFileName: undefined,
+          mergedFileName: undefined,
+        };
 
         try {
           while (true) {
             const { value, done } = await reader.read();
             if (done) {
-              const output = extractOutput(raw);
-              const fileName = output.mergedFileName || output.extractedFileName || output.downloadedFileName;
+              output = extractOutput(raw);
+              removeOutput(output);
 
-              if (fileName) {
-                const outDir = Deno.env.get("OUTPUT_DIR");
-                setTimeout(() => {
-                  try {
-                    Deno.remove(`${outDir}/${fileName}`);
-                  } catch {
-                    console.log("File Not Found");
-                  }
-                }, 70 * 1000); // 70 Seconds
-              }
+              const json = JSON.stringify({ data: { progress, output } });
+              const encodedJson = encoder.encode(json);
+
+              controller.enqueue(encodedJson);
               controller.close();
               break;
             }
+
             const decodedValue = decoder.decode(value);
             raw += decodedValue;
-            controller.enqueue(value);
+
+            const progressValue = extractProgressValue(decodedValue);
+            if (progressValue !== null) progress = progressValue;
+
+            const json = JSON.stringify({ data: { progress, output } });
+            const encodedJson = encoder.encode(`${json}\n`);
+            controller.enqueue(encodedJson);
           }
         } catch (err) {
-          // console.log((err as Error).message);
-          const encodedErr = encoder.encode(`Error: ${(err as Error).message}`);
-          controller.enqueue(encodedErr);
+          const errorMessage = (err as Error).message;
+          const json = JSON.stringify({ data: { progress, output }, error: { message: errorMessage } });
+          const encodedJson = encoder.encode(json);
+
+          controller.enqueue(encodedJson);
           controller.close();
         }
       },
