@@ -115,7 +115,7 @@ export const extractFormats = (raw: string) => {
     .filter((format) => Boolean(format.fileSize));
 };
 
-export const extractProgressValue = (raw: string) => {
+export const extractProgressValue = (raw: string): number | null => {
   const multilineDownloadRegex = /^\[download\]\s+([\d.]+)%/gm;
   const matches = [...raw.matchAll(multilineDownloadRegex)];
 
@@ -176,3 +176,12 @@ export function extractOutput(raw: string): OutputNames {
 
   return output;
 }
+
+export const extractVersion = (raw: string): string | null => {
+  const multilineStableRegex = /(stable@\d{4}\.\d{2}\.\d{2})/gm;
+  const matches = [...raw.matchAll(multilineStableRegex)];
+
+  if (matches.length === 0) return null;
+  const lastMatch = matches[matches.length - 1];
+  return lastMatch[1];
+};

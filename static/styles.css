@@ -27,10 +27,13 @@ html {
   --primary-color-75: rgba(102, 51, 153, 0.75);
   --bg-color: #fff;
   --bg-color-secondary: var(--gray-100);
+  --bg-color-error: #fee2e2;
   --border-color: var(--gray-200);
+  --border-color-error: #fecaca;
   --text-color: var(--gray-900);
   --text-color-secondary: var(--gray-700);
   --text-color-idle: var(--gray-500);
+  --text-color-error: #b91c1c;
 }
 
 html.dark {
@@ -40,10 +43,13 @@ html.dark {
   --primary-color-75: #fba919bf;
   --bg-color: var(--gray-950);
   --bg-color-secondary: var(--gray-900);
+  --bg-color-error: #7f1d1d;
   --border-color: var(--gray-800);
+  --border-color-error: #991b1b;
   --text-color: var(--gray-100);
   --text-color-secondary: var(--gray-300);
   --text-color-idle: var(--gray-500);
+  --text-color-error: #fca5a5;
 }
 
 ::selection {

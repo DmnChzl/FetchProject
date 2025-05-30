@@ -2,8 +2,7 @@ import { useSignal } from "@preact/signals";
 import clsx from "clsx";
 import { JSX } from "preact";
 import { sortByKey } from "../utils/index.ts";
-import ChevronDown from "./ChevronDown.tsx";
-import ChevronUp from "./ChevronUp.tsx";
+import { IconChevronDown, IconChevronUp } from "./icons/index.ts";
 
 export type TableHeader<T> = Record<keyof T, string>;
 
@@ -65,8 +64,8 @@ export default function EmbeddedTable<T>({ headers, dataset }: EmbeddedTableProp
                 >
                   <span>{value}</span>
                   {sortKey.value !== key && <span class="w-[24px] hidden sm:block" />}
-                  {sortKey.value === key && sortOrder.value === "asc" && <ChevronDown />}
-                  {sortKey.value === key && sortOrder.value === "desc" && <ChevronUp />}
+                  {sortKey.value === key && sortOrder.value === "asc" && <IconChevronDown />}
+                  {sortKey.value === key && sortOrder.value === "desc" && <IconChevronUp />}
                 </button>
                 <span class="absolute bottom-0 left-0 w-full h-px bg-[var(--border-color)]" />
               </th>

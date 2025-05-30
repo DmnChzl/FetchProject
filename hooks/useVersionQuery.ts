@@ -1,17 +1,16 @@
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
-import type { ExplicitFormat } from "../models/format.ts";
 
-const REQUEST_URL = "/api/list-formats";
+const REQUEST_URL = "/api/version";
 
-export default function useListFormats(url: string) {
+export default function useVersionQuery() {
   const ctrlRef = useRef<AbortController | null>(null);
 
-  const data = useSignal<ExplicitFormat[]>([]);
+  const data = useSignal<{ version: string } | null>(null);
   const loading = useSignal(false);
   const error = useSignal<Error | null>(null);
 
-  const fetchListFormats = async (url: string) => {
+  const fetchVersion = async () => {
     ctrlRef.current?.abort();
     ctrlRef.current = new AbortController();
 
@@ -19,12 +18,7 @@ export default function useListFormats(url: string) {
     error.value = null;
 
     try {
-      const res = await fetch(REQUEST_URL, {
-        method: "POST",
-        body: JSON.stringify({ url }),
-        signal: ctrlRef.current.signal,
-      });
-
+      const res = await fetch(REQUEST_URL, { signal: ctrlRef.current.signal });
       data.value = await res.json();
     } catch (err) {
       error.value = err as Error;
@@ -34,16 +28,16 @@ export default function useListFormats(url: string) {
   };
 
   useEffect(() => {
-    if (url) fetchListFormats(url);
+    fetchVersion();
     return () => {
       ctrlRef.current?.abort();
     };
-  }, [url]);
+  }, []);
 
   return {
     data,
     loading,
     error,
-    refetch: () => fetchListFormats(url),
+    refetch: fetchVersion,
   };
 }
