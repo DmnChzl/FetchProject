@@ -112,6 +112,7 @@ export const extractFormats = (raw: string) => {
   return formats
     .filter((format) => Boolean(format.id))
     .filter((format) => format.extension !== "mhtml")
+    .filter((format) => format.videoCodec !== "images")
     .filter((format) => Boolean(format.fileSize));
 };
 
@@ -172,6 +173,8 @@ export function extractOutput(raw: string): OutputNames {
       output.mergedFileName = basename(mergerPath.trim());
       continue;
     }
+
+    // TODO: [VideoConvertor] Converting video from mp4 to mkv; Destination: output_dir/xxx.xyz
   }
 
   return output;

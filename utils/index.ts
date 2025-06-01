@@ -1,5 +1,26 @@
-import { BYTE_MAP, FILE_SIZE_REGEX } from "../constants/index.ts";
+import { BYTE_MAP } from "../constants/index.ts";
 
+/**
+ * setTimeout + clearTimeout
+ *
+ * @param {Function} callback
+ * @param delay Default: 125ms
+ */
+export const delayedCallback = (callback: () => void, delay = 125) => {
+  const timerId = setTimeout(() => {
+    callback();
+    clearTimeout(timerId);
+  }, delay);
+};
+
+/**
+ * Create an Anchor,
+ * Attach a Blob,
+ * Trigger an Event,
+ * Then, Delete the Anchor.
+ *
+ * @param {Blob} file
+ */
 export const downloadFile = (file: File) => {
   const anchor = document.createElement("a");
   const url = globalThis.URL.createObjectURL(file);
@@ -14,9 +35,14 @@ export const downloadFile = (file: File) => {
   globalThis.URL.revokeObjectURL(url);
 };
 
-export const convertSizeToBytes = (str: string) => {
+/**
+ * @method convertSizeToBytes
+ * @param str Bytes Value (As String)
+ * @returns Bytes Value (As Number)
+ */
+export const convertSizeToBytes = (str: string): number | undefined => {
   if (!str || typeof str !== "string") return undefined;
-  const matches = str.match(FILE_SIZE_REGEX);
+  const matches = str.match(/^([\d.]+)\s*(B|KiB|MiB|GiB)?$/);
   if (!matches) return undefined;
   const [_, value, unit] = matches;
   const multiplier = BYTE_MAP[unit] || 1;
@@ -35,6 +61,12 @@ export function sortByKey<T>(key: keyof T, order: SortOrder = "asc") {
   };
 }
 
+/**
+ * readDir() + stat() Recursively
+ *
+ * @param dir Directory Path
+ * @returns Directory Size
+ */
 export const dirSize = async (dir: string) => {
   let totalSize = 0;
 

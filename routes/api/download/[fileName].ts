@@ -1,4 +1,5 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
+import { delayedCallback } from "../../../utils/index.ts";
 
 export const handler: Handlers = {
   async GET(_req: Request, ctx: FreshContext) {
@@ -10,7 +11,14 @@ export const handler: Handlers = {
     try {
       const arrayBuffer = await Deno.readFile(filePath);
       const blob = new Blob([arrayBuffer]);
-      await Deno.remove(filePath);
+
+      delayedCallback(async () => {
+        try {
+          await Deno.remove(filePath);
+        } catch {
+          console.log("File Not Found");
+        }
+      });
 
       return new Response(blob, {
         status: 200,

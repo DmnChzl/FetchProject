@@ -54,6 +54,7 @@ export default function DownloadPage(props: PageProps<SizeStatus>) {
   const urlParam = searchParams.get("url") || "";
   const audioParam = searchParams.get("audio") || "";
   const videoParam = searchParams.get("video") || "";
+  const extParam = searchParams.get("ext") || "";
 
   return (
     <>
@@ -72,11 +73,12 @@ export default function DownloadPage(props: PageProps<SizeStatus>) {
             url={urlParam}
             audio={audioParam}
             video={videoParam}
+            ext={extParam}
           />
         )}
       {props.data.availableSize <= 0 && (
         <div class="flex h-full">
-          <div class="m-auto flex flex-col items-center space-y-4">
+          <div class="m-auto flex flex-col items-center">
             <div class="relative">
               <span class="text-[48px] text-mono font-semibold text-[var(--primary-color)]">{SHRUGGING}</span>
               <span class="absolute -bottom-[4px] -right-[4px] text-[48px] text-mono font-semibold text-[var(--primary-color-25)]">
@@ -84,7 +86,7 @@ export default function DownloadPage(props: PageProps<SizeStatus>) {
               </span>
             </div>
 
-            <p class="text-[14px] text-[var(--text-color-secondary)]">
+            <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">
               {props.data.message}
             </p>
             <a

@@ -2,6 +2,18 @@ import { useComputed, useSignal, useSignalEffect } from "@preact/signals";
 import { THEME } from "../constants/index.ts";
 
 const ITEM_KEY = "fetch-pref";
+const REBECCA_PURPLE = "#639";
+const YELLOW_FRAUNCES = "#FBA919";
+
+/**
+ * Set <meta name="theme-color" content />
+ *
+ * @param {string} color Hex Color
+ */
+const setThemeColor = (color: string) => {
+  const metaThemeColor = document.querySelector("meta[name=theme-color]");
+  if (metaThemeColor) metaThemeColor.setAttribute("content", color);
+};
 
 export default function ToggleTheme() {
   const theme = useSignal(THEME.LIGHT);
@@ -20,9 +32,11 @@ export default function ToggleTheme() {
     if (isDarkMode.value) {
       theme.value = THEME.LIGHT;
       document.documentElement.classList.remove("dark");
+      setThemeColor(REBECCA_PURPLE);
     } else {
       theme.value = THEME.DARK;
       document.documentElement.classList.add("dark");
+      setThemeColor(YELLOW_FRAUNCES);
     }
 
     globalThis.localStorage.setItem(ITEM_KEY, JSON.stringify({ theme: theme.value }));

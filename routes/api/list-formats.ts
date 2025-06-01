@@ -1,10 +1,8 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
 import { encodeBase64 } from "$std/encoding/base64.ts";
-import { YT_DLP_COMMAND } from "../../constants/index.ts";
+import { YT_DLP_ARGS, YT_DLP_COMMAND } from "../../constants/index.ts";
 import SimpleCache from "../../utils/cache.ts";
 import { extractFormats } from "../../utils/extract.ts";
-
-const LIST_FORMATS_ARG = "--list-formats";
 
 const simpleCache = new SimpleCache<string>(60 * 60 * 1000); // 1 Hours
 
@@ -24,7 +22,7 @@ export const handler: Handlers = {
     }
 
     const command = new Deno.Command(YT_DLP_COMMAND, {
-      args: [body.url, LIST_FORMATS_ARG],
+      args: [YT_DLP_ARGS.LIMIT_RATE, "750K", body.url, YT_DLP_ARGS.LIST_FORMATS],
       stdout: "piped",
       stderr: "piped",
     });

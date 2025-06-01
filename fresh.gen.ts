@@ -9,7 +9,7 @@ import * as $api_download_fileName_ from "./routes/api/download/[fileName].ts";
 import * as $api_format from "./routes/api/format.ts";
 import * as $api_list_formats from "./routes/api/list-formats.ts";
 import * as $api_version from "./routes/api/version.ts";
-import * as $download from "./routes/download.tsx";
+import * as $format from "./routes/format.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $list_formats from "./routes/list-formats.tsx";
 import * as $DownloadableFile from "./islands/DownloadableFile.tsx";
@@ -27,7 +27,7 @@ const manifest = {
     "./routes/api/format.ts": $api_format,
     "./routes/api/list-formats.ts": $api_list_formats,
     "./routes/api/version.ts": $api_version,
-    "./routes/download.tsx": $download,
+    "./routes/format.tsx": $format,
     "./routes/index.tsx": $index,
     "./routes/list-formats.tsx": $list_formats,
   },

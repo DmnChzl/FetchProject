@@ -1,5 +1,6 @@
 import { useComputed, useSignal } from "@preact/signals";
 import EmbeddedTable, { CellRecord, TableHeader } from "../components/EmbeddedTable.tsx";
+import { IconUpsideDown } from "../components/icons/index.ts";
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import useListFormats from "../hooks/useListFormats.ts";
 import type { ExplicitFormat } from "../models/format.ts";
@@ -26,6 +27,9 @@ const TABLE_HEADER: TableHeader<EmbeddedFormat> = {
   format: "",
 };
 
+const AUDIO_EXT = ["aac", "alac", "flac", "m4a", "mp3", "opus", "ogg", "wav"];
+const VIDEO_EXT = ["avi", "flv", "gif", "mkv", "mov", "mp4", "webm"];
+
 const isAudioFormat = (format: ExplicitFormat) => format.resolution === "audio_only";
 const isVideoFormat = (format: ExplicitFormat) => Boolean(format.width && format.height);
 
@@ -36,8 +40,13 @@ interface ListFormatsProps {
 export default function ListFormats({ url }: ListFormatsProps) {
   const { data: formats, loading } = useListFormats(url);
 
-  const audioFormat = useSignal("");
-  const videoFormat = useSignal("");
+  const audioFormat = useSignal<ExplicitFormat | null>(null);
+  const videoFormat = useSignal<ExplicitFormat | null>(null);
+
+  const outputExt = useSignal("default");
+  const resetOutputExt = () => {
+    outputExt.value = "default";
+  };
 
   const selectedFormatCount = useComputed(() => {
     return [audioFormat.value, videoFormat.value].filter(Boolean).length;
@@ -49,36 +58,43 @@ export default function ListFormats({ url }: ListFormatsProps) {
     return Boolean(audioFormat.value) || Boolean(videoFormat.value);
   });
 
-  const downloadLink = useComputed(() => {
+  const formatLink = useComputed(() => {
     const encodedUrl = encodeURIComponent(url);
-    let link = `/download?url=${encodedUrl}`;
+    let link = `/format?url=${encodedUrl}`;
 
     if (audioFormat.value) {
-      link += `&audio=${audioFormat.value}`;
+      link += `&audio=${audioFormat.value.id}`;
     }
     if (videoFormat.value) {
-      link += `&video=${videoFormat.value}`;
+      link += `&video=${videoFormat.value.id}`;
+    }
+    if (outputExt.value !== "default") {
+      link += `&ext=${outputExt.value}`;
     }
     return link;
   });
 
-  const isSelectedFormat = (format: ExplicitFormat) => [audioFormat.value, videoFormat.value].includes(format.id);
+  const isSelectedFormat = (format: ExplicitFormat) => {
+    return [audioFormat.value?.id, videoFormat.value?.id].includes(format.id);
+  };
 
   const handleClick = (format: ExplicitFormat) => {
-    if (audioFormat.value === format.id) {
-      audioFormat.value = "";
+    resetOutputExt();
+
+    if (audioFormat.value?.id === format.id) {
+      audioFormat.value = null;
       return;
     }
-    if (videoFormat.value === format.id) {
-      videoFormat.value = "";
+    if (videoFormat.value?.id === format.id) {
+      videoFormat.value = null;
       return;
     }
     if (isAudioFormat(format)) {
-      audioFormat.value = format.id;
+      audioFormat.value = format;
       return;
     }
     if (isVideoFormat(format)) {
-      videoFormat.value = format.id;
+      videoFormat.value = format;
       return;
     }
   };
@@ -162,15 +178,31 @@ export default function ListFormats({ url }: ListFormatsProps) {
             </span>
             {!selectedFormatEmpty.value &&
               (
-                <span class="text-[14px] text-[var(--text-color-secondary)]">
-                  {selectedFormatCount.value} Selected Format{selectedFormatCount.value > 1 ? "s" : ""}
-                </span>
+                <div class="flex items-center text-[14px]">
+                  <span class="text-[var(--text-color-secondary)]">
+                    {selectedFormatCount.value} Selected Format{selectedFormatCount.value > 1 ? "s" : ""}, Output:&nbsp;
+                  </span>
+                  <div class="flex items-center justify-center px-2 text-[var(--primary-color)] bg-[var(--primary-color-25)] rounded-full">
+                    <select
+                      style={{ appearance: "none", backgroundColor: "transparent", outline: "none" }}
+                      onChange={(event) => outputExt.value = event.currentTarget.value}
+                    >
+                      <option value="default">default</option>
+                      {!videoFormat.value &&
+                        AUDIO_EXT.map((ext, idx) => <option key={`option-${idx}`} value={ext}>{ext}</option>)}
+                      {videoFormat.value &&
+                        VIDEO_EXT.map((ext, idx) => <option key={`option-${idx}`} value={ext}>{ext}</option>)}
+                    </select>
+                    <IconUpsideDown width={16} height={16} />
+                  </div>
+                </div>
               )}
           </div>
+
           {hasFormatSelected.value && (
             <a
               class="px-2 text-[24px] font-semibold text-fraunces tracking-wide bg-[var(--primary-color)] text-[var(--bg-color)] hover:bg-[var(--primary-color-75)] rounded-[6px]"
-              href={downloadLink.value}
+              href={formatLink.value}
             >
               fetch!
             </a>
