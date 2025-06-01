@@ -4,6 +4,7 @@ import { delayedCallback } from "../../../utils/index.ts";
 export const handler: Handlers = {
   async GET(_req: Request, ctx: FreshContext) {
     const { fileName } = ctx.params;
+
     const outDir = Deno.env.get("OUTPUT_DIR");
     const decodedFileName = decodeURIComponent(fileName);
     const filePath = `${outDir}/${decodedFileName}`;
@@ -27,9 +28,7 @@ export const handler: Handlers = {
         },
       });
     } catch {
-      return new Response(null, {
-        status: 404,
-      });
+      return new Response(null, { status: 404 });
     }
   },
 };

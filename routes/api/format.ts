@@ -1,8 +1,9 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
 import { YT_DLP_ARGS, YT_DLP_COMMAND } from "../../constants/index.ts";
-import { OutputNames } from "../../models/output-names.ts";
+import { FormatBody } from "../../models/format-body.ts";
 import { extractOutput, extractProgressValue } from "../../utils/extract.ts";
 import { delayedCallback } from "../../utils/index.ts";
+import { spawnStreamableProcess } from "../../utils/process.ts";
 
 /**
  * Build >_ DLP Args
@@ -22,23 +23,22 @@ const buildFormatArgs = (
   const outDir = Deno.env.get("OUTPUT_DIR");
   const isAudioOnly = Boolean(audio && !video);
   const format = [audio, video].filter(Boolean).join("+");
-  const args: string[] = [YT_DLP_ARGS.FORMAT, format, url];
+  let args: string[] = [YT_DLP_ARGS.FORMAT, format, url];
 
   if (ext) {
-    const output = `${outDir}/%(id)s.${ext}`;
-
     if (isAudioOnly) {
-      return [...args, YT_DLP_ARGS.EXTRACT_AUDIO, YT_DLP_ARGS.AUDIO_FORMAT, ext, YT_DLP_ARGS.OUTPUT, output];
+      args = [...args, YT_DLP_ARGS.EXTRACT_AUDIO, YT_DLP_ARGS.AUDIO_FORMAT, ext];
+    } else {
+      args = [...args, YT_DLP_ARGS.REMUX_VIDEO, ext];
     }
-    return [...args, YT_DLP_ARGS.RECODE_VIDEO, ext, YT_DLP_ARGS.OUTPUT, output];
   }
-  return [...args, YT_DLP_ARGS.OUTPUT, `${outDir}/%(id)s.%(ext)s`];
+
+  const output = `${outDir}/%(id)s.%(ext)s`;
+  return [...args, YT_DLP_ARGS.OUTPUT, output];
 };
 
-const removeOutput = (output: OutputNames) => {
-  const fileName = output.mergedFileName || output.extractedFileName || output.downloadedFileName || "";
-
-  if (fileName) {
+const removeOutputFile = (fileName: string) => {
+  if (fileName.length) {
     const outDir = Deno.env.get("OUTPUT_DIR");
 
     delayedCallback(async () => {
@@ -51,79 +51,37 @@ const removeOutput = (output: OutputNames) => {
   }
 };
 
-interface FormatBody {
-  url: string;
-  audio?: string;
-  video?: string;
-  ext?: string;
-}
-
 export const handler: Handlers = {
   async POST(req: Request, _ctx: FreshContext) {
     const body = await req.json() as FormatBody;
 
     if (!body.audio && !body.video) {
-      return new Response(null, {
+      const messageStr = JSON.stringify({ message: "Audio Or Video Format Required" });
+
+      return new Response(messageStr, {
         status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     }
 
     const args = buildFormatArgs(body.url, body?.audio, body?.video, body?.ext);
-    const command = new Deno.Command(YT_DLP_COMMAND, {
-      args: [YT_DLP_ARGS.LIMIT_RATE, "1.5M", ...args],
-      stdout: "piped",
-      stderr: "piped",
-    });
 
-    const childProcess = command.spawn();
-    const encoder = new TextEncoder();
+    let fileName = "";
+    let progress = 0;
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = childProcess.stdout.getReader();
-        const decoder = new TextDecoder();
-
-        let raw = "";
-        let progress = 0;
-        let output: OutputNames = {
-          downloadedFileName: undefined,
-          extractedFileName: undefined,
-          mergedFileName: undefined,
-        };
-
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) {
-              output = extractOutput(raw);
-              removeOutput(output);
-
-              const json = JSON.stringify({ data: { progress, output } });
-              const encodedJson = encoder.encode(json);
-
-              controller.enqueue(encodedJson);
-              controller.close();
-              break;
-            }
-
-            const decodedValue = decoder.decode(value);
-            raw += decodedValue;
-
-            const progressValue = extractProgressValue(decodedValue);
-            if (progressValue !== null) progress = progressValue;
-
-            const json = JSON.stringify({ data: { progress, output } });
-            const encodedJson = encoder.encode(`${json}\n`);
-            controller.enqueue(encodedJson);
-          }
-        } catch (err) {
-          const errorMessage = (err as Error).message;
-          const json = JSON.stringify({ data: { progress, output }, error: { message: errorMessage } });
-          const encodedJson = encoder.encode(json);
-
-          controller.enqueue(encodedJson);
-          controller.close();
-        }
+    const stream = spawnStreamableProcess(YT_DLP_COMMAND, [YT_DLP_ARGS.LIMIT_RATE, "1.5M", ...args], {
+      onCompleteTransform: (result) => {
+        const output = extractOutput(result);
+        fileName = output.remuxedFileName || output.extractedFileName || output.downloadedFileName || "";
+        removeOutputFile(fileName);
+        return JSON.stringify({ fileName, progress });
+      },
+      onEachValueTransform: (value) => {
+        const progressValue = extractProgressValue(value);
+        if (progressValue !== null) progress = progressValue;
+        return JSON.stringify({ fileName, progress }) + "\n";
       },
     });
 

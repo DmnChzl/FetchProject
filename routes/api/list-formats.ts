@@ -3,6 +3,7 @@ import { encodeBase64 } from "$std/encoding/base64.ts";
 import { YT_DLP_ARGS, YT_DLP_COMMAND } from "../../constants/index.ts";
 import SimpleCache from "../../utils/cache.ts";
 import { extractFormats } from "../../utils/extract.ts";
+import { spawnProcess } from "../../utils/process.ts";
 
 const simpleCache = new SimpleCache<string>(60 * 60 * 1000); // 1 Hours
 
@@ -21,35 +22,32 @@ export const handler: Handlers = {
       });
     }
 
-    const command = new Deno.Command(YT_DLP_COMMAND, {
-      args: [YT_DLP_ARGS.LIMIT_RATE, "750K", body.url, YT_DLP_ARGS.LIST_FORMATS],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const childProcess = command.spawn();
-    const reader = childProcess.stdout.getReader();
-    const decoder = new TextDecoder();
-    let raw = "";
-
     try {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        raw += decoder.decode(value);
-      }
-    } catch {
-      return new Response(null, { status: 500 });
+      const result = await spawnProcess(YT_DLP_COMMAND, [
+        YT_DLP_ARGS.LIMIT_RATE,
+        "750K",
+        body.url,
+        YT_DLP_ARGS.LIST_FORMATS,
+      ]);
+
+      const extractedFormats = extractFormats(result);
+      const extractedFormatsStr = JSON.stringify(extractedFormats);
+      simpleCache.set(urlKey, extractedFormatsStr);
+
+      return new Response(extractedFormatsStr, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (err) {
+      const messageStr = JSON.stringify({ message: (err as Error).message });
+
+      return new Response(messageStr, {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     }
-
-    const extractedFormats = extractFormats(raw);
-    const extractedFormatsStr = JSON.stringify(extractedFormats);
-    simpleCache.set(urlKey, extractedFormatsStr);
-
-    return new Response(extractedFormatsStr, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
   },
 };

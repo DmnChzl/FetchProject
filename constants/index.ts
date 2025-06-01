@@ -7,6 +7,9 @@ export const BYTE_MAP: Record<string, number> = {
   GiB: 1024 ** 3,
 };
 
+export const FF_MPEG_COMMAND = "ffmpeg";
+export const FF_PROBE_COMMAND = "ffprobe";
+
 export const HEADER_MAP: Record<string, keyof ImplicitFormat> = {
   ID: "id",
   EXT: "ext",
@@ -37,7 +40,8 @@ export const YT_DLP_ARGS = {
   LIMIT_RATE: "--limit-rate", // -r
   LIST_FORMATS: "--list-formats", // -F
   OUTPUT: "--output", // -o
-  RECODE_VIDEO: "--recode-video",
+  REMUX_VIDEO: "--remux-video",
+  UPDATE: "--update", // -U
 };
 
 export const YT_DLP_COMMAND = "yt-dlp";

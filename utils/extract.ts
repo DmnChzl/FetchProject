@@ -164,17 +164,21 @@ export function extractOutput(raw: string): OutputNames {
       continue;
     }
 
-    // RegExp: [Merger] Merging formats into output_dir/xxx.xyz
-    const mergerMatch = line.match(
-      /^\[Merger\] Merging formats into ["'](.+?)["']$/,
-    );
-    if (mergerMatch && mergerMatch.length >= 1) {
-      const [_, mergerPath] = mergerMatch;
-      output.mergedFileName = basename(mergerPath.trim());
+    // RegExp: [VideoRemuxer] Remuxing video from abc to xyz; Destination: output_dir/xxx.xyz
+    const remuxMatch = line.match(/^\[VideoRemuxer\].+?Destination:\s+(.+)$/);
+    if (remuxMatch && remuxMatch.length >= 1) {
+      const [_, remuxPath] = remuxMatch;
+      output.remuxedFileName = basename(remuxPath.trim());
       continue;
     }
 
-    // TODO: [VideoConvertor] Converting video from mp4 to mkv; Destination: output_dir/xxx.xyz
+    // RegExp: [VideoRemuxer] Not remuxing media file output_dir/xxx.xyz; already is in target format
+    const remuxSkipMatch = line.match(/Not remuxing media file (.+?)/);
+    if (remuxSkipMatch && remuxSkipMatch.length >= 1) {
+      const [_, remuxSkipPath] = remuxSkipMatch;
+      output.remuxedFileName = basename(remuxSkipPath.trim());
+      continue;
+    }
   }
 
   return output;
@@ -187,4 +191,20 @@ export const extractVersion = (raw: string): string | null => {
   if (matches.length === 0) return null;
   const lastMatch = matches[matches.length - 1];
   return lastMatch[1];
+};
+
+export const extractFFmpegVersion = (raw: string): string | null => {
+  const versionRegex = /^ffmpeg version (\d+\.\d+\.\d+(?:[-+.\w]*)?)/m;
+  const matches = raw.match(versionRegex);
+
+  if (matches?.length === 0) return null;
+  return matches ? matches[1] : null;
+};
+
+export const extractFFprobeVersion = (raw: string): string | null => {
+  const versionRegex = /^ffprobe version (\d+\.\d+\.\d+(?:[-+.\w]*)?)/m;
+  const matches = raw.match(versionRegex);
+
+  if (matches?.length === 0) return null;
+  return matches ? matches[1] : null;
 };

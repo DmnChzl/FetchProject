@@ -51,7 +51,7 @@ export default function SearchForm({ defaultValue = "" }: SearchFormProps) {
         placeholder="https://"
         type="text"
         value={inputText.value}
-        onInput={(event) => inputText.value = event.currentTarget.value.toLowerCase()}
+        onInput={(event) => inputText.value = event.currentTarget.value}
         style={{ appearance: "none", backgroundColor: "transparent", outline: "none" }}
         disabled={loading.value || hasError.value}
       />

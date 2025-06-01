@@ -14,13 +14,6 @@ interface DownloadableFileProps {
 
 export default function DownloadableFile(props: DownloadableFileProps) {
   const { data: stream, loading } = useStreamableFormat(props);
-  const fileName = useComputed(() =>
-    stream.value.output.mergedFileName ||
-    stream.value.output.extractedFileName ||
-    stream.value.output.downloadedFileName ||
-    ""
-  );
-
   const outputDestroyed = useSignal(false);
   const { remainingTime, isRunning, start: startCountDown, stop: stopCountDown } = useCountDown({
     duration: 60,
@@ -33,7 +26,7 @@ export default function DownloadableFile(props: DownloadableFileProps) {
   const isCountDone = useComputed(() => remainingTime.value === 0);
 
   useSignalEffect(() => {
-    if (!loading.value && fileName.value) {
+    if (!loading.value && stream.value.fileName) {
       startCountDown();
     }
   });
@@ -42,7 +35,7 @@ export default function DownloadableFile(props: DownloadableFileProps) {
     outputDestroyed.value = true;
     stopCountDown();
 
-    if (fileName) {
+    if (fileName.length) {
       const encodedFileName = encodeURIComponent(fileName);
       const response = await fetch(`/api/download/${encodedFileName}`);
       const blob = await response.blob();
@@ -76,7 +69,7 @@ export default function DownloadableFile(props: DownloadableFileProps) {
           className="z-10 py-2"
           outlined
           rounded
-          onClick={() => handleClick(fileName.value)}
+          onClick={() => handleClick(stream.value.fileName)}
           disabled={loading.value || outputDestroyed.value || isCountDone.value}
         >
           Download

@@ -3,10 +3,18 @@ import { useEffect, useRef } from "preact/hooks";
 
 const REQUEST_URL = "/api/version";
 
+interface CoreVersion {
+  core: string;
+  ffmpeg: string;
+  ffprobe: string;
+}
+
+const initialState = { core: "", ffmpeg: "", ffprobe: "" };
+
 export default function useVersionQuery() {
   const ctrlRef = useRef<AbortController | null>(null);
 
-  const data = useSignal<{ version: string } | null>(null);
+  const data = useSignal<CoreVersion>(initialState);
   const loading = useSignal(false);
   const error = useSignal<Error | null>(null);
 

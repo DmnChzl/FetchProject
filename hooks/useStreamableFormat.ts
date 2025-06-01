@@ -1,35 +1,20 @@
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { FormatBody } from "../models/format-body.ts";
-import { OutputNames } from "../models/output-names.ts";
 
 const REQUEST_URL = "/api/format";
 
-interface DataStream {
+interface FileProgress {
+  fileName: string;
   progress: number;
-  output: OutputNames;
 }
 
-interface JsonStream {
-  data: DataStream;
-  error?: {
-    message: string;
-  };
-}
-
-const defaultDataStream = {
-  progress: 0,
-  output: {
-    downloadedFileName: undefined,
-    extractedFileName: undefined,
-    mergedFileName: undefined,
-  },
-};
+const initialState = { fileName: "", progress: 0 };
 
 export default function useStreamableFormat(body: FormatBody) {
   const ctrlRef = useRef<AbortController | null>(null);
 
-  const data = useSignal<DataStream>(defaultDataStream);
+  const data = useSignal<FileProgress>(initialState);
   const loading = useSignal(false);
   const error = useSignal<Error | null>(null);
 
@@ -38,8 +23,8 @@ export default function useStreamableFormat(body: FormatBody) {
     ctrlRef.current = new AbortController();
 
     if (!body.audio && !body.video) {
-      error.value = new Error("Audio Or Video Format Required");
       loading.value = false;
+      error.value = new Error("Audio Or Video Format Required");
     }
 
     loading.value = true;
@@ -54,31 +39,22 @@ export default function useStreamableFormat(body: FormatBody) {
 
       const reader = res.body?.getReader();
       if (!reader) {
-        error.value = new Error("Unable To Read The Stream");
         loading.value = false;
+        error.value = new Error("Unable to Read the Stream");
         return;
       }
 
       const decoder = new TextDecoder();
-
       while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
+        const { done: isDone, value } = await reader.read();
+        if (isDone) {
           loading.value = false;
           break;
         }
 
         const decodedValue = decoder.decode(value);
-        const streamLines = decodedValue.split("\n").filter(Boolean);
-        const jsonStream = JSON.parse(streamLines[streamLines.length - 1]) as JsonStream;
-
-        if (jsonStream.error) {
-          loading.value = false;
-          error.value = new Error(jsonStream.error.message);
-          break;
-        }
-
-        data.value = jsonStream.data;
+        const values = decodedValue.split("\n").filter(Boolean);
+        data.value = JSON.parse(values[values.length - 1]) as FileProgress;
       }
     } catch (err) {
       loading.value = false;
@@ -88,7 +64,9 @@ export default function useStreamableFormat(body: FormatBody) {
 
   useEffect(() => {
     if (body) fetchFormat(body);
-    return () => ctrlRef.current?.abort();
+    // return () => {
+    //   ctrlRef.current?.abort();
+    // };
   }, [body]);
 
   return {

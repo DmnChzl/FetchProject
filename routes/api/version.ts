@@ -1,7 +1,8 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
-import { YT_DLP_COMMAND } from "../../constants/index.ts";
+import { FF_MPEG_COMMAND, FF_PROBE_COMMAND, YT_DLP_ARGS, YT_DLP_COMMAND } from "../../constants/index.ts";
 import SimpleCache from "../../utils/cache.ts";
-import { extractVersion } from "../../utils/extract.ts";
+import { extractFFmpegVersion, extractFFprobeVersion, extractVersion } from "../../utils/extract.ts";
+import { spawnProcess } from "../../utils/process.ts";
 
 const simpleCache = new SimpleCache<string>(30 * 24 * 60 * 60 * 1000); // 30 Days
 
@@ -17,50 +18,38 @@ export const handler: Handlers = {
       });
     }
 
-    const command = new Deno.Command(YT_DLP_COMMAND, {
-      args: ["-U"],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    let childProcess!: Deno.ChildProcess;
-
     try {
-      childProcess = command.spawn();
-    } catch {
-      simpleCache.clear();
-      return new Response(null, { status: 500 });
-    }
+      const result = await spawnProcess(YT_DLP_COMMAND, [YT_DLP_ARGS.UPDATE]);
 
-    const reader = childProcess.stdout.getReader();
-    const decoder = new TextDecoder();
-    let raw = "";
-
-    try {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        raw += decoder.decode(value);
+      const version = extractVersion(result);
+      if (!version) {
+        throw new Error("No Version Found");
       }
-    } catch {
+
+      const mpegResult = await spawnProcess(FF_MPEG_COMMAND, ["-version"]);
+      const mpegVersion = extractFFmpegVersion(mpegResult) || "";
+
+      const probeResult = await spawnProcess(FF_PROBE_COMMAND, ["-version"]);
+      const probeVersion = extractFFprobeVersion(probeResult) || "";
+
+      const versionStr = JSON.stringify({ core: version, ffmpeg: mpegVersion, ffprobe: probeVersion });
+      simpleCache.set("version", versionStr);
+
+      return new Response(versionStr, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (err) {
       simpleCache.clear();
-      return new Response(null, { status: 500 });
+      const messageStr = JSON.stringify({ message: (err as Error).message });
+
+      return new Response(messageStr, {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     }
-
-    const version = extractVersion(raw);
-
-    if (!version) {
-      simpleCache.clear();
-      return new Response(null, { status: 500 });
-    }
-
-    const versionStr = JSON.stringify({ version });
-    simpleCache.set("version", versionStr);
-
-    return new Response(versionStr, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
   },
 };
