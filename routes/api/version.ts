@@ -10,7 +10,6 @@ export const handler: Handlers = {
   async GET(_req: Request, _ctx: FreshContext) {
     if (simpleCache.has("version")) {
       const versionStr = simpleCache.get("version");
-
       return new Response(versionStr, {
         headers: {
           "Content-Type": "application/json",
@@ -19,18 +18,19 @@ export const handler: Handlers = {
     }
 
     try {
-      const result = await spawnProcess(YT_DLP_COMMAND, [YT_DLP_ARGS.UPDATE]);
+      const { stdout, stderr } = await spawnProcess(YT_DLP_COMMAND, [YT_DLP_ARGS.UPDATE]);
+      if (stderr) throw new Error(stderr);
 
-      const version = extractVersion(result);
-      if (!version) {
-        throw new Error("No Version Found");
-      }
+      const version = extractVersion(stdout);
+      if (!version) throw new Error("No Version Found");
 
-      const mpegResult = await spawnProcess(FF_MPEG_COMMAND, ["-version"]);
-      const mpegVersion = extractFFmpegVersion(mpegResult) || "";
+      const { stdout: mpegVersionStr, stderr: mpegError } = await spawnProcess(FF_MPEG_COMMAND, ["-version"]);
+      if (mpegError) throw new Error(mpegError);
+      const mpegVersion = extractFFmpegVersion(mpegVersionStr) || "";
 
-      const probeResult = await spawnProcess(FF_PROBE_COMMAND, ["-version"]);
-      const probeVersion = extractFFprobeVersion(probeResult) || "";
+      const { stdout: probeVersionStr, stderr: probeError } = await spawnProcess(FF_PROBE_COMMAND, ["-version"]);
+      if (probeError) throw new Error(probeError);
+      const probeVersion = extractFFprobeVersion(probeVersionStr) || "";
 
       const versionStr = JSON.stringify({ core: version, ffmpeg: mpegVersion, ffprobe: probeVersion });
       simpleCache.set("version", versionStr);
@@ -41,9 +41,7 @@ export const handler: Handlers = {
         },
       });
     } catch (err) {
-      simpleCache.clear();
       const messageStr = JSON.stringify({ message: (err as Error).message });
-
       return new Response(messageStr, {
         status: 500,
         headers: {

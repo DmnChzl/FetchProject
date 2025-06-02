@@ -23,14 +23,15 @@ export const handler: Handlers = {
     }
 
     try {
-      const result = await spawnProcess(YT_DLP_COMMAND, [
+      const { stdout, stderr } = await spawnProcess(YT_DLP_COMMAND, [
         YT_DLP_ARGS.LIMIT_RATE,
         "750K",
         body.url,
         YT_DLP_ARGS.LIST_FORMATS,
       ]);
+      if (stderr) throw new Error(stderr);
 
-      const extractedFormats = extractFormats(result);
+      const extractedFormats = extractFormats(stdout);
       const extractedFormatsStr = JSON.stringify(extractedFormats);
       simpleCache.set(urlKey, extractedFormatsStr);
 
@@ -41,7 +42,6 @@ export const handler: Handlers = {
       });
     } catch (err) {
       const messageStr = JSON.stringify({ message: (err as Error).message });
-
       return new Response(messageStr, {
         status: 500,
         headers: {

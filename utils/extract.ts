@@ -164,6 +164,14 @@ export function extractOutput(raw: string): OutputNames {
       continue;
     }
 
+    // RegExp: [Merger] Merging formats into output_dir/xxx.xyz
+    const mergerMatch = line.match(/^\[Merger\] Merging formats into ["'](.+?)["']$/);
+    if (mergerMatch && mergerMatch.length >= 1) {
+      const [_, mergerPath] = mergerMatch;
+      output.mergedFileName = basename(mergerPath.trim());
+      continue;
+    }
+
     // RegExp: [VideoRemuxer] Remuxing video from abc to xyz; Destination: output_dir/xxx.xyz
     const remuxMatch = line.match(/^\[VideoRemuxer\].+?Destination:\s+(.+)$/);
     if (remuxMatch && remuxMatch.length >= 1) {

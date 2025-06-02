@@ -55,7 +55,7 @@ export default function EmbeddedTable<T>({ headers, dataset }: EmbeddedTableProp
             {(Object.entries(headers) as [keyof T, string][]).map(([key, value], idx) => (
               <th
                 key={`header-${idx}`}
-                class="sticky top-0 z-10 py-2 px-4 h-[40px] text-[14px] font-semibold text-[var(--text-color-idle)] bg-[var(--bg-color)] text-left"
+                class="sticky top-0 z-10 py-2 px-4 h-[40px] text-[14px] font-semibold text-[var(--text-color-idle)] bg-[var(--bg-color)] text-left whitespace-nowrap"
               >
                 <button
                   class="flex items-center justify-between w-full"

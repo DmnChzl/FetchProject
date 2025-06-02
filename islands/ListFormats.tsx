@@ -168,7 +168,7 @@ export default function ListFormats({ url }: ListFormatsProps) {
   });
 
   return (
-    <div class="flex flex-col space-y-4 py-4 px-4 md:px-8 lg:px-16 h-[calc(100%-175px)]">
+    <div class="flex flex-col space-y-4 py-4 px-4 md:px-8 lg:px-16 h-[calc(100%-195px)] md:h-[calc(100%-175px)]">
       {loading.value && (
         <div class="flex items-center justify-between min-h-[48px]">
           <span class="text-[18px] font-semibold text-[var(--text-color)]">
@@ -183,20 +183,21 @@ export default function ListFormats({ url }: ListFormatsProps) {
             <span class="text-[18px] font-semibold text-[var(--text-color)]">
               {formats.value.length} Result{formats.value.length > 1 ? "s" : ""}
             </span>
-            {!selectedFormatEmpty.value &&
-              (
-                <div class="flex items-center text-[14px]">
-                  <span class="text-[var(--text-color-secondary)]">
-                    {selectedFormatCount.value} Selected Format{selectedFormatCount.value > 1 ? "s" : ""}, Output:&nbsp;
-                  </span>
-                  {extMenuEnabled.value && (
-                    <DropDown<string>
-                      onChange={(event) => outputExt.value = event.currentTarget.value}
-                      options={dropDownOptions.value}
-                    />
-                  )}
-                </div>
-              )}
+
+            {!selectedFormatEmpty.value && (
+              <div class="flex items-center text-[14px]">
+                <span class="text-[var(--text-color-secondary)]">
+                  {selectedFormatCount.value} Selected Format{selectedFormatCount.value > 1 ? "s" : ""}, Output:&nbsp;
+                </span>
+
+                {extMenuEnabled.value && (
+                  <DropDown<string>
+                    onChange={(event) => outputExt.value = event.currentTarget.value}
+                    options={dropDownOptions.value}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {hasFormatSelected.value && (

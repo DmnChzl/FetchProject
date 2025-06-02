@@ -15,7 +15,12 @@ interface DownloadableFileProps {
 export default function DownloadableFile(props: DownloadableFileProps) {
   const { data: stream, loading } = useStreamableFormat(props);
   const outputDestroyed = useSignal(false);
-  const { remainingTime, isRunning, start: startCountDown, stop: stopCountDown } = useCountDown({
+  const {
+    remainingTime,
+    isRunning,
+    start: startCountDown,
+    stop: stopCountDown,
+  } = useCountDown({
     duration: 60,
     autoStart: false,
     onEnd: () => {
@@ -46,7 +51,11 @@ export default function DownloadableFile(props: DownloadableFileProps) {
   return (
     <div class="flex h-full">
       <div className="m-auto flex flex-col items-center">
-        <CircularProgress className="mx-auto" progress={stream.value.progress} disabled={outputDestroyed.value} />
+        <CircularProgress
+          className="mx-auto"
+          progress={stream.value.progress}
+          disabled={outputDestroyed.value}
+        />
         <div class="flex flex-col items-center">
           {loading.value && (
             <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">
@@ -55,8 +64,8 @@ export default function DownloadableFile(props: DownloadableFileProps) {
           )}
           {isRunning.value && !outputDestroyed.value && (
             <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">
-              File Self-Destructs In <span class="font-semibold">{remainingTime.value}</span>{" "}
-              Sec{remainingTime.value > 1 ? "s" : ""}
+              File Self-Destructs In <span class="font-semibold">{remainingTime.value}</span> Sec
+              {remainingTime.value > 1 ? "s" : ""}
             </p>
           )}
           {!isRunning.value && outputDestroyed.value && (

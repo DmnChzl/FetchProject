@@ -2,7 +2,12 @@ import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { FormatBody } from "../models/format-body.ts";
 
-const REQUEST_URL = "/api/format";
+const REQUEST_URL = "/api/stream/format";
+
+interface DataStream {
+  stdout: string;
+  stderr: string;
+}
 
 interface FileProgress {
   fileName: string;
@@ -46,15 +51,23 @@ export default function useStreamableFormat(body: FormatBody) {
 
       const decoder = new TextDecoder();
       while (true) {
-        const { done: isDone, value } = await reader.read();
-        if (isDone) {
+        const { done, value } = await reader.read();
+        if (done) {
           loading.value = false;
           break;
         }
 
         const decodedValue = decoder.decode(value);
         const values = decodedValue.split("\n").filter(Boolean);
-        data.value = JSON.parse(values[values.length - 1]) as FileProgress;
+        const dataStream = JSON.parse(values[values.length - 1]) as DataStream;
+
+        if (dataStream.stderr) {
+          loading.value = false;
+          error.value = new Error(dataStream.stderr);
+          break;
+        }
+
+        data.value = JSON.parse(dataStream.stdout) as FileProgress;
       }
     } catch (err) {
       loading.value = false;

@@ -1,8 +1,18 @@
 interface SpawnOptions {
-  onComplete?: (result: string) => void;
   onEachValue?: (value: string) => void;
+  onComplete?: (stdout: string) => void;
+  onEachErrorValue?: (value: string) => void;
+  onErrorComplete?: (stderr: string) => void;
 }
 
+/**
+ * Wait For Command Execution
+ *
+ * @param interpreter The Main Script
+ * @param interpreterArgs Script Args
+ * @param options Spawn Watcher Callbacks
+ * @returns stdout / stderr
+ */
 export const spawnProcess = async (interpreter: string, interpreterArgs: string[] = [], options: SpawnOptions = {}) => {
   const command = new Deno.Command(interpreter, {
     args: interpreterArgs,
@@ -19,39 +29,65 @@ export const spawnProcess = async (interpreter: string, interpreterArgs: string[
     throw new Error("Failed to Spawns a Streamable Process");
   }
 
-  const reader = childProcess.stdout.getReader();
   const decoder = new TextDecoder();
-  let raw = "";
+  const outReader = childProcess.stdout.getReader();
+  const errReader = childProcess.stderr.getReader();
 
-  try {
-    while (true) {
-      const { done: isDone, value } = await reader.read();
-      if (isDone) {
-        if (typeof options.onComplete === "function") {
-          options.onComplete(raw);
-        }
-        break;
+  let stdout = "";
+  let stderr = "";
+
+  while (true) {
+    const { done, value } = await outReader.read();
+    if (done) {
+      if (typeof options.onComplete === "function") {
+        options.onComplete(stdout);
       }
-
-      const nextValue = decoder.decode(value);
-      raw += nextValue;
-
-      if (typeof options.onEachValue === "function") {
-        options.onEachValue(nextValue);
-      }
+      break;
     }
-  } catch {
-    throw new Error("Unable to Read the Stream");
+
+    const nextValue = decoder.decode(value);
+    stdout += nextValue;
+
+    if (typeof options.onEachValue === "function") {
+      options.onEachValue(nextValue);
+    }
   }
 
-  return raw;
+  while (true) {
+    const { done, value } = await errReader.read();
+    if (done) {
+      if (typeof options.onErrorComplete === "function") {
+        options.onErrorComplete(stderr);
+      }
+      break;
+    }
+
+    const nextValue = decoder.decode(value);
+    stderr += nextValue;
+
+    if (typeof options.onEachErrorValue === "function") {
+      options.onEachErrorValue(nextValue);
+    }
+  }
+
+  return { stdout, stderr };
 };
 
 interface StreamableOptions {
-  onCompleteTransform?: (result: string) => string;
   onEachValueTransform?: (value: string) => string;
+  onCompleteTransform?: (stdout: string) => string;
+  onEachErrorValueTransform?: (value: string) => string;
+  onErrorCompleteTransform?: (stderr: string) => string;
 }
 
+/**
+ * Stream Command Execution
+ *
+ * @param interpreter The Main Script
+ * @param interpreterArgs Script Args
+ * @param options Transform Functions Collection
+ * @returns {ReadableStream} { stdout, stderr }
+ */
 export const spawnStreamableProcess = (
   interpreter: string,
   interpreterArgs: string[] = [],
@@ -75,35 +111,56 @@ export const spawnStreamableProcess = (
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const reader = childProcess.stdout.getReader();
       const decoder = new TextDecoder();
-      let raw = "";
+      const outReader = childProcess.stdout.getReader();
+      const errReader = childProcess.stderr.getReader();
 
-      try {
-        while (true) {
-          const { done: isDone, value } = await reader.read();
-          if (isDone) {
-            if (typeof options.onCompleteTransform === "function") {
-              const nextValue = options.onCompleteTransform(raw);
-              controller.enqueue(encoder.encode(nextValue));
-            }
+      let stdout = "";
+      let stderr = "";
 
-            controller.close();
-            break;
+      while (true) {
+        const { done, value } = await outReader.read();
+        if (done) {
+          if (typeof options.onCompleteTransform === "function") {
+            const nextValue = options.onCompleteTransform(stdout);
+            const std = JSON.stringify({ stdout: nextValue, stderr });
+            controller.enqueue(encoder.encode(std));
           }
-
-          let nextValue = decoder.decode(value);
-          raw += nextValue;
-
-          if (typeof options.onEachValueTransform === "function") {
-            nextValue = options.onEachValueTransform(nextValue);
-          }
-
-          controller.enqueue(encoder.encode(nextValue));
+          break;
         }
-      } catch (err) {
-        console.log((err as Error).message);
-        controller.close();
+
+        let nextValue = decoder.decode(value);
+        stdout += nextValue;
+
+        if (typeof options.onEachValueTransform === "function") {
+          nextValue = options.onEachValueTransform(nextValue);
+        }
+
+        const std = JSON.stringify({ stdout: nextValue, stderr }) + "\n";
+        controller.enqueue(encoder.encode(std));
+      }
+
+      while (true) {
+        const { done, value } = await errReader.read();
+        if (done) {
+          if (typeof options.onErrorCompleteTransform === "function") {
+            const nextValue = options.onErrorCompleteTransform(stderr);
+            const std = JSON.stringify({ stdout, stderr: nextValue });
+            controller.enqueue(encoder.encode(std));
+          }
+
+          controller.close();
+          break;
+        }
+
+        let nextValue = decoder.decode(value);
+        stderr += nextValue;
+
+        if (typeof options.onEachErrorValueTransform === "function") {
+          nextValue = options.onEachErrorValueTransform(nextValue);
+          const std = JSON.stringify({ stdout, stderr: nextValue }) + "\n";
+          controller.enqueue(encoder.encode(std));
+        }
       }
     },
   });

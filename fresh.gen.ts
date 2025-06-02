@@ -6,8 +6,8 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_500 from "./routes/_500.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $api_download_fileName_ from "./routes/api/download/[fileName].ts";
-import * as $api_format from "./routes/api/format.ts";
 import * as $api_list_formats from "./routes/api/list-formats.ts";
+import * as $api_stream_format from "./routes/api/stream/format.ts";
 import * as $api_version from "./routes/api/version.ts";
 import * as $format from "./routes/format.tsx";
 import * as $index from "./routes/index.tsx";
@@ -24,8 +24,8 @@ const manifest = {
     "./routes/_500.tsx": $_500,
     "./routes/_app.tsx": $_app,
     "./routes/api/download/[fileName].ts": $api_download_fileName_,
-    "./routes/api/format.ts": $api_format,
     "./routes/api/list-formats.ts": $api_list_formats,
+    "./routes/api/stream/format.ts": $api_stream_format,
     "./routes/api/version.ts": $api_version,
     "./routes/format.tsx": $format,
     "./routes/index.tsx": $index,

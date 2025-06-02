@@ -1,9 +1,9 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
-import { YT_DLP_ARGS, YT_DLP_COMMAND } from "../../constants/index.ts";
-import { FormatBody } from "../../models/format-body.ts";
-import { extractOutput, extractProgressValue } from "../../utils/extract.ts";
-import { delayedCallback } from "../../utils/index.ts";
-import { spawnStreamableProcess } from "../../utils/process.ts";
+import { YT_DLP_ARGS, YT_DLP_COMMAND } from "../../../constants/index.ts";
+import { FormatBody } from "../../../models/format-body.ts";
+import { extractOutput, extractProgressValue } from "../../../utils/extract.ts";
+import { delayedCallback } from "../../../utils/index.ts";
+import { spawnStreamableProcess } from "../../../utils/process.ts";
 
 /**
  * Build >_ DLP Args
@@ -72,16 +72,20 @@ export const handler: Handlers = {
     let progress = 0;
 
     const stream = spawnStreamableProcess(YT_DLP_COMMAND, [YT_DLP_ARGS.LIMIT_RATE, "1.5M", ...args], {
-      onCompleteTransform: (result) => {
-        const output = extractOutput(result);
-        fileName = output.remuxedFileName || output.extractedFileName || output.downloadedFileName || "";
+      onCompleteTransform: (stdout) => {
+        const output = extractOutput(stdout);
+        fileName = output.remuxedFileName ||
+          output.mergedFileName ||
+          output.extractedFileName ||
+          output.downloadedFileName || "";
+
         removeOutputFile(fileName);
         return JSON.stringify({ fileName, progress });
       },
       onEachValueTransform: (value) => {
         const progressValue = extractProgressValue(value);
         if (progressValue !== null) progress = progressValue;
-        return JSON.stringify({ fileName, progress }) + "\n";
+        return JSON.stringify({ fileName, progress });
       },
     });
 

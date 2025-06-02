@@ -25,8 +25,12 @@ export default function useListFormats(url: string) {
         signal: ctrlRef.current.signal,
       });
 
+      if (!res.ok) throw new Error("Request Failed");
       data.value = await res.json();
     } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        console.warn("Aborted Request");
+      }
       error.value = err as Error;
     } finally {
       loading.value = false;
