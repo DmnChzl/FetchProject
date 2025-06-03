@@ -1,28 +1,29 @@
 import type { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
-import Logo from "../components/Logo.tsx";
-import ListFormats from "../islands/ListFormats.tsx";
-import SearchInput from "../islands/SearchInput.tsx";
-import { getVersion } from "../services/versionService.ts";
+import Logo from "../../components/Logo.tsx";
+import DownloadableFile from "../../islands/DownloadableFile.tsx";
+import SearchInput from "../../islands/SearchInput.tsx";
+import { getVersion } from "../../services/versionService.ts";
 
 interface PageData {
+  token: string;
   hasCoreVersion: boolean;
-  hasDependenciesVersion: boolean;
 }
 
 export const handler: Handlers<PageData> = {
   async GET(_req: Request, ctx: FreshContext) {
+    const { token } = ctx.params;
+
     try {
       const version = await getVersion();
       const hasCoreVersion = Boolean(version.core);
-      const hasDependenciesVersion = Boolean(version.ffmpeg && version.ffprobe);
-      return ctx.render({ hasCoreVersion, hasDependenciesVersion });
+      return ctx.render({ token, hasCoreVersion });
     } catch {
-      return ctx.render({ hasCoreVersion: false, hasDependenciesVersion: false });
+      return ctx.render({ token, hasCoreVersion: false });
     }
   },
 };
 
-export default function ListFormatsPage(props: PageProps<PageData>) {
+export default function DownloadPage(props: PageProps<PageData>) {
   const searchParams = new URLSearchParams(props.url.search);
   const urlValue = searchParams.get("url") || "";
 
@@ -37,7 +38,7 @@ export default function ListFormatsPage(props: PageProps<PageData>) {
         </div>
         <span class="w-[40px] hidden sm:block" />
       </div>
-      <ListFormats sourceUrl={urlValue} targetMenuEnabled={props.data.hasDependenciesVersion} />
+      <DownloadableFile oneTimeToken={props.data.token} />
     </>
   );
 }

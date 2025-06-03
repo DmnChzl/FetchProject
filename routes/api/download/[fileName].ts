@@ -1,25 +1,17 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
-import { delayedCallback } from "../../../utils/index.ts";
+import env from "../../../constants/env.ts";
+import { readFile, removeFile } from "../../../utils/fileSystem.ts";
 
 export const handler: Handlers = {
   async GET(_req: Request, ctx: FreshContext) {
     const { fileName } = ctx.params;
 
-    const outDir = Deno.env.get("OUTPUT_DIR");
     const decodedFileName = decodeURIComponent(fileName);
-    const filePath = `${outDir}/${decodedFileName}`;
+    const filePath = `${env.outputDir}/${decodedFileName}`;
 
     try {
-      const arrayBuffer = await Deno.readFile(filePath);
-      const blob = new Blob([arrayBuffer]);
-
-      delayedCallback(async () => {
-        try {
-          await Deno.remove(filePath);
-        } catch {
-          console.log("File Not Found");
-        }
-      });
+      const blob = await readFile(filePath);
+      removeFile(filePath);
 
       return new Response(blob, {
         status: 200,

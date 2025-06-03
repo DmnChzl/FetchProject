@@ -1,13 +1,16 @@
 import type { FreshContext, Handlers } from "$fresh/server.ts";
-import { getVersion } from "../../services/versionService.ts";
+import { streamFormat } from "../../../services/formatService.ts";
 
 export const handler: Handlers = {
-  async GET(_req: Request, _ctx: FreshContext) {
+  GET(_req: Request, ctx: FreshContext) {
+    const { token } = ctx.params;
+
     try {
-      const coreVersion = await getVersion();
-      return new Response(JSON.stringify(coreVersion), {
+      const stream = streamFormat(token);
+      return new Response(stream, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain; charset=utf-8",
+          "Transfer-Encoding": "chunked",
         },
       });
     } catch (err) {

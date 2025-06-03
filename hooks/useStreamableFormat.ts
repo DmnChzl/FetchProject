@@ -1,8 +1,7 @@
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
-import type { FormatBody } from "../models/format-body.ts";
 
-const REQUEST_URL = "/api/stream/format";
+const getRequestUrl = (token: string) => `/api/format/${token}`;
 
 interface DataStream {
   stdout: string;
@@ -16,29 +15,22 @@ interface FileProgress {
 
 const initialState = { fileName: "", progress: 0 };
 
-export default function useStreamableFormat(body: FormatBody) {
+export default function useStreamableFormat(token: string) {
   const ctrlRef = useRef<AbortController | null>(null);
 
   const data = useSignal<FileProgress>(initialState);
   const loading = useSignal(false);
   const error = useSignal<Error | null>(null);
 
-  const fetchFormat = async (body: FormatBody) => {
+  const fetchFormat = async (token: string) => {
     ctrlRef.current?.abort();
     ctrlRef.current = new AbortController();
-
-    if (!body.audio && !body.video) {
-      loading.value = false;
-      error.value = new Error("Audio Or Video Format Required");
-    }
 
     loading.value = true;
     error.value = null;
 
     try {
-      const res = await fetch(REQUEST_URL, {
-        method: "POST",
-        body: JSON.stringify(body),
+      const res = await fetch(getRequestUrl(token), {
         signal: ctrlRef.current.signal,
       });
 
@@ -76,16 +68,16 @@ export default function useStreamableFormat(body: FormatBody) {
   };
 
   useEffect(() => {
-    if (body) fetchFormat(body);
+    if (token) fetchFormat(token);
     // return () => {
     //   ctrlRef.current?.abort();
     // };
-  }, [body]);
+  }, [token]);
 
   return {
     data,
     loading,
     error,
-    refetch: () => fetchFormat(body),
+    refetch: () => fetchFormat(token),
   };
 }

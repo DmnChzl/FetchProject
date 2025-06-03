@@ -1,7 +1,7 @@
 import { basename } from "$std/path/basename.ts";
 import { HEADER_MAP, REQUIRED_HEADER_NAMES } from "../constants/index.ts";
 import type { ExplicitFormat, ImplicitFormat } from "../models/format.ts";
-import type { OutputNames } from "../models/output-names.ts";
+import type { OutputNames } from "../models/outputNames.ts";
 import { convertSizeToBytes } from "./index.ts";
 
 const defaultFormat: ImplicitFormat = {
@@ -33,7 +33,7 @@ export const extractFormats = (raw: string) => {
 
   const headerLine = lines[headerIdx]
     .replace(/[│]/g, " ")
-    .replace(/MORE INFO/g, ""); // Exclude
+    .replace(/MORE INFO/g, ""); // * EXCLUDE *
 
   const bodyLines = lines.slice(headerIdx + 2).map((line) => {
     return line
@@ -117,15 +117,15 @@ export const extractFormats = (raw: string) => {
 };
 
 export const extractProgressValue = (raw: string): number | null => {
-  const multilineDownloadRegex = /^\[download\]\s+([\d.]+)%/gm;
-  const matches = [...raw.matchAll(multilineDownloadRegex)];
+  const downloadRegex = /^\[download\]\s+([\d.]+)%/gm;
+  const matches = [...raw.matchAll(downloadRegex)];
 
   if (matches.length === 0) return null;
   const lastMatch = matches[matches.length - 1];
   return parseInt(lastMatch[1]);
 };
 
-export function extractOutput(raw: string): OutputNames {
+export const extractOutput = (raw: string): OutputNames => {
   const lines = raw.split("\n");
   const output: OutputNames = {};
 
@@ -139,9 +139,7 @@ export function extractOutput(raw: string): OutputNames {
     }
 
     // RegExp: [download] output_dir/xxx.xyz has already been downloaded
-    const alreadyDownloadedMatch = line.match(
-      /^\[download\] (.+?) has already been downloaded$/,
-    );
+    const alreadyDownloadedMatch = line.match(/^\[download\] (.+?) has already been downloaded$/);
     if (alreadyDownloadedMatch && alreadyDownloadedMatch.length >= 1) {
       const [_, alreadyDownloadedPath] = alreadyDownloadedMatch;
       output.downloadedFileName = basename(alreadyDownloadedPath.trim());
@@ -190,11 +188,11 @@ export function extractOutput(raw: string): OutputNames {
   }
 
   return output;
-}
+};
 
 export const extractVersion = (raw: string): string | null => {
-  const multilineStableRegex = /(stable@\d{4}\.\d{2}\.\d{2})/gm;
-  const matches = [...raw.matchAll(multilineStableRegex)];
+  const stableRegex = /(stable@\d{4}\.\d{2}\.\d{2})/gm;
+  const matches = [...raw.matchAll(stableRegex)];
 
   if (matches.length === 0) return null;
   const lastMatch = matches[matches.length - 1];

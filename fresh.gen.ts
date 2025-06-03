@@ -6,15 +6,17 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_500 from "./routes/_500.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $api_download_fileName_ from "./routes/api/download/[fileName].ts";
+import * as $api_format_token_ from "./routes/api/format/[token].ts";
+import * as $api_format_index from "./routes/api/format/index.ts";
 import * as $api_list_formats from "./routes/api/list-formats.ts";
-import * as $api_stream_format from "./routes/api/stream/format.ts";
 import * as $api_version from "./routes/api/version.ts";
-import * as $format from "./routes/format.tsx";
+import * as $format_token_ from "./routes/format/[token].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $list_formats from "./routes/list-formats.tsx";
 import * as $DownloadableFile from "./islands/DownloadableFile.tsx";
 import * as $ListFormats from "./islands/ListFormats.tsx";
 import * as $SearchForm from "./islands/SearchForm.tsx";
+import * as $SearchInput from "./islands/SearchInput.tsx";
 import * as $ToggleTheme from "./islands/ToggleTheme.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -24,10 +26,11 @@ const manifest = {
     "./routes/_500.tsx": $_500,
     "./routes/_app.tsx": $_app,
     "./routes/api/download/[fileName].ts": $api_download_fileName_,
+    "./routes/api/format/[token].ts": $api_format_token_,
+    "./routes/api/format/index.ts": $api_format_index,
     "./routes/api/list-formats.ts": $api_list_formats,
-    "./routes/api/stream/format.ts": $api_stream_format,
     "./routes/api/version.ts": $api_version,
-    "./routes/format.tsx": $format,
+    "./routes/format/[token].tsx": $format_token_,
     "./routes/index.tsx": $index,
     "./routes/list-formats.tsx": $list_formats,
   },
@@ -35,6 +38,7 @@ const manifest = {
     "./islands/DownloadableFile.tsx": $DownloadableFile,
     "./islands/ListFormats.tsx": $ListFormats,
     "./islands/SearchForm.tsx": $SearchForm,
+    "./islands/SearchInput.tsx": $SearchInput,
     "./islands/ToggleTheme.tsx": $ToggleTheme,
   },
   baseUrl: import.meta.url,

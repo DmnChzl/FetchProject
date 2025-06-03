@@ -2,7 +2,7 @@ import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { ExplicitFormat } from "../models/format.ts";
 
-const REQUEST_URL = "/api/list-formats";
+const getRequestUrl = (url: string) => `/api/list-formats?url=${url}`;
 
 export default function useListFormats(url: string) {
   const ctrlRef = useRef<AbortController | null>(null);
@@ -19,9 +19,7 @@ export default function useListFormats(url: string) {
     error.value = null;
 
     try {
-      const res = await fetch(REQUEST_URL, {
-        method: "POST",
-        body: JSON.stringify({ url }),
+      const res = await fetch(getRequestUrl(url), {
         signal: ctrlRef.current.signal,
       });
 

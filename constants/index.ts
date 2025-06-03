@@ -28,6 +28,8 @@ export const HEADER_MAP: Record<string, keyof ImplicitFormat> = {
 
 export const REQUIRED_HEADER_NAMES = ["ID", "EXT", "FILESIZE", "PROTO"];
 
+export const SHRUGGING = "¯\\_(ツ)_/¯";
+
 export const THEME = {
   DARK: "dark",
   LIGHT: "light",

@@ -1,9 +1,8 @@
 import { useComputed, useSignal } from "@preact/signals";
 import DropDown from "../components/DropDown.tsx";
-import EmbeddedTable, { CellRecord, TableHeader } from "../components/EmbeddedTable.tsx";
+import EmbeddedTable, { type CellRecord, type TableHeader } from "../components/EmbeddedTable.tsx";
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import useListFormats from "../hooks/useListFormats.ts";
-import useVersionQuery from "../hooks/useVersionQuery.ts";
 import type { ExplicitFormat } from "../models/format.ts";
 
 interface EmbeddedFormat {
@@ -30,23 +29,23 @@ const TABLE_HEADER: TableHeader<EmbeddedFormat> = {
 
 const AUDIO_EXT = ["aac", "alac", "flac", "m4a", "mp3", "opus", "vorbis", "wav"];
 const VIDEO_EXT = ["avi", "flv", "gif", "mkv", "mov", "mp4", "webm"];
+const DEFAULT_TARGET_EXT = "default";
 
 const isAudioFormat = (format: ExplicitFormat) => format.resolution === "audio_only";
 const isVideoFormat = (format: ExplicitFormat) => Boolean(format.width && format.height);
 
 interface ListFormatsProps {
-  url: string;
+  sourceUrl: string;
+  targetMenuEnabled: boolean;
 }
 
-export default function ListFormats({ url }: ListFormatsProps) {
-  const { data: formats, loading } = useListFormats(url);
-  const { data: version } = useVersionQuery();
-  const extMenuEnabled = useComputed(() => Boolean(version.value.ffmpeg && version.value.ffprobe));
+export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormatsProps) {
+  const { data: formats, loading } = useListFormats(sourceUrl);
 
   const audioFormat = useSignal<ExplicitFormat | null>(null);
   const videoFormat = useSignal<ExplicitFormat | null>(null);
 
-  const outputExt = useSignal("default");
+  const targetExtension = useSignal<string>(DEFAULT_TARGET_EXT);
 
   const selectedFormatCount = useComputed(() => {
     return [audioFormat.value, videoFormat.value].filter(Boolean).length;
@@ -60,25 +59,9 @@ export default function ListFormats({ url }: ListFormatsProps) {
 
   const dropDownOptions = useComputed(() => {
     if (videoFormat.value) {
-      return ["default", ...VIDEO_EXT].map((ext) => ({ label: ext, value: ext }));
+      return [DEFAULT_TARGET_EXT, ...VIDEO_EXT].map((ext) => ({ label: ext, value: ext }));
     }
-    return ["default", ...AUDIO_EXT].map((ext) => ({ label: ext, value: ext }));
-  });
-
-  const formatLink = useComputed(() => {
-    const encodedUrl = encodeURIComponent(url);
-    let link = `/format?url=${encodedUrl}`;
-
-    if (audioFormat.value) {
-      link += `&audio=${audioFormat.value.id}`;
-    }
-    if (videoFormat.value) {
-      link += `&video=${videoFormat.value.id}`;
-    }
-    if (outputExt.value !== "default") {
-      link += `&ext=${outputExt.value}`;
-    }
-    return link;
+    return [DEFAULT_TARGET_EXT, ...AUDIO_EXT].map((ext) => ({ label: ext, value: ext }));
   });
 
   const isSelectedFormat = (format: ExplicitFormat) => {
@@ -86,7 +69,7 @@ export default function ListFormats({ url }: ListFormatsProps) {
   };
 
   const handleClick = (format: ExplicitFormat) => {
-    outputExt.value = "default"; // * RESET *
+    targetExtension.value = DEFAULT_TARGET_EXT; // * RESET *
 
     if (audioFormat.value?.id === format.id) {
       audioFormat.value = null;
@@ -167,6 +150,25 @@ export default function ListFormats({ url }: ListFormatsProps) {
     }));
   });
 
+  const goToFormatPage = async () => {
+    const body = JSON.stringify({
+      sourceUrl,
+      audioFormat: audioFormat.value,
+      videoFormat: videoFormat.value,
+      targetExtension: targetExtension.value !== DEFAULT_TARGET_EXT ? targetExtension.value : undefined,
+    });
+
+    const res = await fetch("/api/format", {
+      method: "POST",
+      body,
+    });
+
+    if (res.ok) {
+      const data: { token: string } = await res.json();
+      globalThis.location.href = `/format/${data.token}?url=${sourceUrl}`;
+    }
+  };
+
   return (
     <div class="flex flex-col space-y-4 py-4 px-4 md:px-8 lg:px-16 h-[calc(100%-195px)] md:h-[calc(100%-175px)]">
       {loading.value && (
@@ -190,9 +192,9 @@ export default function ListFormats({ url }: ListFormatsProps) {
                   {selectedFormatCount.value} Selected Format{selectedFormatCount.value > 1 ? "s" : ""}, Output:&nbsp;
                 </span>
 
-                {extMenuEnabled.value && (
+                {targetMenuEnabled && (
                   <DropDown<string>
-                    onChange={(event) => outputExt.value = event.currentTarget.value}
+                    onChange={(event) => targetExtension.value = event.currentTarget.value}
                     options={dropDownOptions.value}
                   />
                 )}
@@ -201,12 +203,13 @@ export default function ListFormats({ url }: ListFormatsProps) {
           </div>
 
           {hasFormatSelected.value && (
-            <a
+            <button
               class="px-2 text-[24px] font-semibold text-fraunces tracking-wide bg-[var(--primary-color)] text-[var(--bg-color)] hover:bg-[var(--primary-color-75)] rounded-[6px]"
-              href={formatLink.value}
+              type="button"
+              onClick={goToFormatPage}
             >
               fetch!
-            </a>
+            </button>
           )}
         </div>
       )}
