@@ -4,6 +4,7 @@ import EmbeddedTable, { type CellRecord, type TableHeader } from "../components/
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import useListFormats from "../hooks/useListFormats.ts";
 import type { ExplicitFormat } from "../models/format.ts";
+import Loading, { LoadingWrapper } from "../components/Loading.tsx";
 
 interface EmbeddedFormat {
   id: string;
@@ -173,9 +174,11 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
     <div class="flex flex-col space-y-4 py-4 px-4 md:px-8 lg:px-16 h-[calc(100%-195px)] md:h-[calc(100%-175px)]">
       {loading.value && (
         <div class="flex items-center justify-between min-h-[48px]">
-          <span class="text-[18px] font-semibold text-[var(--text-color)]">
-            Wait For It...
-          </span>
+          <LoadingWrapper>
+            <span class="mr-2 text-[18px] font-semibold text-[var(--text-color)]">
+              Wait For It
+            </span>
+          </LoadingWrapper>
         </div>
       )}
 

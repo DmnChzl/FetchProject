@@ -61,9 +61,9 @@ export default function useStreamableFormat(token: string) {
 
         data.value = JSON.parse(dataStream.stdout) as FileProgress;
       }
-    } catch (err) {
+    } catch {
       loading.value = false;
-      error.value = err as Error;
+      error.value = new Error("Invalid Token");
     }
   };
 

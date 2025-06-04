@@ -1,4 +1,18 @@
-import { useSignal, useSignalEffect } from "@preact/signals";
+import { Signal, useComputed, useSignal, useSignalEffect } from "@preact/signals";
+
+interface UseCountDownState {
+  remainingTime: Signal<number>;
+  isRunning: Signal<boolean>;
+  hasStarted: Signal<boolean>;
+}
+
+interface UseCountDownDispatchers {
+  start: () => void;
+  pause: () => void;
+  resume: () => void;
+  stop: () => void;
+  reset: () => void;
+}
 
 interface UseCountDownProps {
   duration: number;
@@ -6,10 +20,15 @@ interface UseCountDownProps {
   onEnd?: () => void;
 }
 
-export default function useCountDown({ duration, autoStart = true, onEnd }: UseCountDownProps) {
+export default function useCountDown({
+  duration,
+  autoStart = true,
+  onEnd,
+}: UseCountDownProps): [UseCountDownState, UseCountDownDispatchers] {
   const remainingTime = useSignal(duration);
   const isRunning = useSignal(autoStart);
   const timerRef = useSignal<number | null>(null);
+  const hasStarted = useComputed(() => remainingTime.value < duration);
 
   const clearTimer = () => {
     if (timerRef.value) {
@@ -30,10 +49,16 @@ export default function useCountDown({ duration, autoStart = true, onEnd }: UseC
     }
   };
 
+  const resume = () => {
+    if (!isRunning.value && remainingTime.value > 0) {
+      isRunning.value = true;
+    }
+  };
+
   const stop = () => {
     clearTimer();
-    isRunning.value = false;
     remainingTime.value = 0;
+    isRunning.value = false;
   };
 
   const reset = () => {
@@ -61,12 +86,8 @@ export default function useCountDown({ duration, autoStart = true, onEnd }: UseC
     return clearTimer;
   });
 
-  return {
-    remainingTime,
-    isRunning,
-    start,
-    pause,
-    stop,
-    reset,
-  };
+  return [
+    { remainingTime, isRunning, hasStarted },
+    { start, pause, resume, stop, reset },
+  ];
 }

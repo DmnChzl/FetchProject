@@ -90,3 +90,17 @@ input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px transparent inset;
   transition: background-color 5000s ease 0s;
 }
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-50%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+.animate-bounce {
+  animation: bounce 1s infinite;
+}

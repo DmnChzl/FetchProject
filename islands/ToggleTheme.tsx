@@ -3,7 +3,7 @@ import { THEME } from "../constants/index.ts";
 
 const ITEM_KEY = "fetch-pref";
 const REBECCA_PURPLE = "#639";
-const YELLOW_FRAUNCES = "#FBA919";
+const YELLOW_FRAUNCES = "#fba919";
 
 /**
  * Set <meta name="theme-color" content />

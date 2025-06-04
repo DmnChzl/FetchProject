@@ -15,7 +15,6 @@ import * as $index from "./routes/index.tsx";
 import * as $list_formats from "./routes/list-formats.tsx";
 import * as $DownloadableFile from "./islands/DownloadableFile.tsx";
 import * as $ListFormats from "./islands/ListFormats.tsx";
-import * as $SearchForm from "./islands/SearchForm.tsx";
 import * as $SearchInput from "./islands/SearchInput.tsx";
 import * as $ToggleTheme from "./islands/ToggleTheme.tsx";
 import type { Manifest } from "$fresh/server.ts";
@@ -37,7 +36,6 @@ const manifest = {
   islands: {
     "./islands/DownloadableFile.tsx": $DownloadableFile,
     "./islands/ListFormats.tsx": $ListFormats,
-    "./islands/SearchForm.tsx": $SearchForm,
     "./islands/SearchInput.tsx": $SearchInput,
     "./islands/ToggleTheme.tsx": $ToggleTheme,
   },

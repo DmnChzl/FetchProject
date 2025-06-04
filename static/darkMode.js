@@ -9,7 +9,7 @@ if (typeof item === "string") {
     const metaThemeColor = document.querySelector("meta[name=theme-color]");
 
     if (metaThemeColor) {
-      const yellowFraunces = "#FBA919";
+      const yellowFraunces = "#fba919";
       metaThemeColor.setAttribute("content", yellowFraunces);
     }
   }
