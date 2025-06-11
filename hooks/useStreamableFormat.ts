@@ -34,14 +34,13 @@ export default function useStreamableFormat(token: string) {
         signal: ctrlRef.current.signal,
       });
 
-      const reader = res.body?.getReader();
-      if (!reader) {
-        loading.value = false;
-        error.value = new Error("Unable to Read the Stream");
-        return;
+      if (!res.ok || !res.body) {
+        throw new Error("Unable to Read the Stream");
       }
 
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
@@ -69,9 +68,6 @@ export default function useStreamableFormat(token: string) {
 
   useEffect(() => {
     if (token) fetchFormat(token);
-    // return () => {
-    //   ctrlRef.current?.abort();
-    // };
   }, [token]);
 
   return {

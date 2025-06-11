@@ -4,7 +4,7 @@ import { postCredentials } from "../../../services/formatService.ts";
 
 export const handler: Handlers = {
   async POST(req: Request, _ctx: FreshContext) {
-    const body = await req.json() as FormatCredentials;
+    const body = (await req.json()) as FormatCredentials;
 
     try {
       const token = await postCredentials(body);

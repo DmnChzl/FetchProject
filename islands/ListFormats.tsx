@@ -1,10 +1,10 @@
 import { useComputed, useSignal } from "@preact/signals";
 import DropDown from "../components/DropDown.tsx";
 import EmbeddedTable, { type CellRecord, type TableHeader } from "../components/EmbeddedTable.tsx";
+import { LoadingWrapper } from "../components/Loading.tsx";
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import useListFormats from "../hooks/useListFormats.ts";
 import type { ExplicitFormat } from "../models/format.ts";
-import Loading, { LoadingWrapper } from "../components/Loading.tsx";
 
 interface EmbeddedFormat {
   id: string;
@@ -60,9 +60,15 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
 
   const dropDownOptions = useComputed(() => {
     if (videoFormat.value) {
-      return [DEFAULT_TARGET_EXT, ...VIDEO_EXT].map((ext) => ({ label: ext, value: ext }));
+      return [DEFAULT_TARGET_EXT, ...VIDEO_EXT].map((ext) => ({
+        label: ext,
+        value: ext,
+      }));
     }
-    return [DEFAULT_TARGET_EXT, ...AUDIO_EXT].map((ext) => ({ label: ext, value: ext }));
+    return [DEFAULT_TARGET_EXT, ...AUDIO_EXT].map((ext) => ({
+      label: ext,
+      value: ext,
+    }));
   });
 
   const isSelectedFormat = (format: ExplicitFormat) => {
@@ -99,9 +105,7 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
       ext: {
         value: format.extension,
         renderCell: (value) => (
-          <span class="px-2 text-[var(--primary-color)] bg-[var(--primary-color-25)] rounded-full">
-            {value}
-          </span>
+          <span class="px-2 text-[var(--primary-color)] bg-[var(--primary-color-25)] rounded-full">{value}</span>
         ),
       },
       res: {
@@ -113,9 +117,7 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
         renderCell: (value) => {
           if (!value) return <span />;
           return (
-            <span class="px-2 text-[var(--primary-color)] bg-[var(--primary-color-25)] rounded-full">
-              {value}
-            </span>
+            <span class="px-2 text-[var(--primary-color)] bg-[var(--primary-color-25)] rounded-full">{value}</span>
           );
         },
       },
@@ -138,10 +140,7 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
 
           return (
             <div class="flex min-w-[96px]">
-              <OutlinedButton
-                outlined={selected}
-                onClick={() => handleClick(value)}
-              >
+              <OutlinedButton outlined={selected} onClick={() => handleClick(value)}>
                 {selected ? "Selected" : "Select"}
               </OutlinedButton>
             </div>
@@ -175,9 +174,7 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
       {loading.value && (
         <div class="flex items-center justify-between min-h-[48px]">
           <LoadingWrapper>
-            <span class="mr-2 text-[18px] font-semibold text-[var(--text-color)]">
-              Wait For It
-            </span>
+            <span class="text-[18px] font-semibold text-[var(--text-color)]">Wait For It</span>
           </LoadingWrapper>
         </div>
       )}
@@ -192,12 +189,15 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
             {!selectedFormatEmpty.value && (
               <div class="flex items-center text-[14px]">
                 <span class="text-[var(--text-color-secondary)]">
-                  {selectedFormatCount.value} Selected Format{selectedFormatCount.value > 1 ? "s" : ""}, Output:&nbsp;
+                  {selectedFormatCount.value} Selected Format
+                  {selectedFormatCount.value > 1 ? "s" : ""}, Output:&nbsp;
                 </span>
 
                 {targetMenuEnabled && (
                   <DropDown<string>
-                    onChange={(event) => targetExtension.value = event.currentTarget.value}
+                    id="target-extension"
+                    name="target-extension"
+                    onChange={(event) => (targetExtension.value = event.currentTarget.value)}
                     options={dropDownOptions.value}
                   />
                 )}
@@ -217,10 +217,7 @@ export default function ListFormats({ sourceUrl, targetMenuEnabled }: ListFormat
         </div>
       )}
 
-      <EmbeddedTable<EmbeddedFormat>
-        headers={TABLE_HEADER}
-        dataset={datasetFormats.value}
-      />
+      <EmbeddedTable<EmbeddedFormat> headers={TABLE_HEADER} dataset={datasetFormats.value} />
     </div>
   );
 }

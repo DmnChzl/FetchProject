@@ -48,7 +48,7 @@ export default function EmbeddedTable<T>({ headers, dataset }: EmbeddedTableProp
   };
 
   return (
-    <div class="overflow-auto border border-[var(--border-color)] rounded-[12px] shadow-sm">
+    <div class="border border-[var(--border-color)] rounded-[12px] shadow-sm overflow-auto scrollbar-none">
       <table class="border-collapse w-full">
         <thead>
           <tr>
@@ -57,11 +57,7 @@ export default function EmbeddedTable<T>({ headers, dataset }: EmbeddedTableProp
                 key={`header-${idx}`}
                 class="sticky top-0 z-10 py-2 px-4 h-[40px] text-[14px] font-semibold text-[var(--text-color-idle)] bg-[var(--bg-color)] text-left whitespace-nowrap"
               >
-                <button
-                  class="flex items-center justify-between w-full"
-                  type="button"
-                  onClick={() => handleClick(key)}
-                >
+                <button class="flex items-center justify-between w-full" type="button" onClick={() => handleClick(key)}>
                   <span>{value}</span>
                   {sortKey.value !== key && <span class="w-[24px] hidden sm:block" />}
                   {sortKey.value === key && sortOrder.value === "asc" && <IconChevronDown />}
@@ -80,7 +76,8 @@ export default function EmbeddedTable<T>({ headers, dataset }: EmbeddedTableProp
               const aObj = cellRecordToObject(a);
               const bObj = cellRecordToObject(b);
               return sortByKey(sortKey.value, sortOrder.value)(aObj, bObj);
-            }).map((data, idx) => {
+            })
+            .map((data, idx) => {
               const props = cellRecordToProps(data);
 
               return (

@@ -23,21 +23,11 @@ export default function App({ Component }: PageProps) {
                 DmnChzl
               </a>{" "}
               | Powered by{"  "}
-              <a
-                class="hover:underline"
-                href="https://fresh.deno.dev"
-                target="_blank"
-                rel="noopener"
-              >
+              <a class="hover:underline" href="https://fresh.deno.dev" target="_blank" rel="noopener">
                 Fresh 🍋
               </a>{" "}
               | Published under{" "}
-              <a
-                class="hover:underline"
-                href="https://www.wikipedia.org/wiki/WTFPL"
-                target="_blank"
-                rel="noopener"
-              >
+              <a class="hover:underline" href="https://www.wikipedia.org/wiki/WTFPL" target="_blank" rel="noopener">
                 WTFPL
               </a>{" "}
               | Choose <ToggleTheme />

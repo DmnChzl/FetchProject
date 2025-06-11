@@ -33,6 +33,8 @@ export const getAllFormats = async (url: string): Promise<ExplicitFormat[]> => {
 
 const formatCache = new SimpleCache<FormatCredentials>(5 * 60 * 1000); // 5 Minutes
 
+const getFormatSize = ({ videoFormat, audioFormat }: FormatCredentials) => videoFormat?.size || audioFormat?.size || 0;
+
 export const postCredentials = async (credentials: FormatCredentials) => {
   if (!credentials.audioFormat && !credentials.videoFormat) {
     throw new Error("Audio Or Video Format Required");
@@ -49,8 +51,9 @@ export const postCredentials = async (credentials: FormatCredentials) => {
   }
 
   const outDirSize = await dirSize(env.outputDir);
-  const formatSize = credentials.videoFormat?.size || credentials.audioFormat?.size || 0;
-  const sizeDiff = sizeLimit - outDirSize - formatSize;
+  const cacheSize = formatCache.getAll().reduce((acc, cre) => acc + getFormatSize(cre), 0);
+  const formatSize = getFormatSize(credentials);
+  const sizeDiff = sizeLimit - outDirSize - cacheSize - formatSize;
 
   if (sizeDiff <= 0) {
     throw new Error("No Space Available");
@@ -70,12 +73,7 @@ export const postCredentials = async (credentials: FormatCredentials) => {
  * @param ext ReFormat/Recode Extension
  * @returns {string} >_ DLP Args
  */
-const buildFormatArgs = (
-  url: string,
-  audioId?: string,
-  videoId?: string,
-  ext?: string,
-) => {
+const buildFormatArgs = (url: string, audioId?: string, videoId?: string, ext?: string) => {
   const isAudioOnly = Boolean(audioId && !videoId);
   const format = [audioId, videoId].filter(Boolean).join("+");
   let args: string[] = [YT_DLP_ARGS.FORMAT, format, url];
@@ -113,9 +111,7 @@ export const streamFormat = (token: string) => {
   const stream = spawnStreamableProcess(YT_DLP_COMMAND, [YT_DLP_ARGS.LIMIT_RATE, "1.5M", ...args], {
     onCompleteTransform: (stdout) => {
       const output = extractOutput(stdout);
-      fileName = output.remuxedFileName ||
-        output.mergedFileName ||
-        output.extractedFileName ||
+      fileName = output.remuxedFileName || output.mergedFileName || output.extractedFileName ||
         output.downloadedFileName || "";
 
       const filePath = `${env.outputDir}/${fileName}`;

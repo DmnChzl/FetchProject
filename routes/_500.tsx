@@ -12,9 +12,7 @@ export default function Error500Page(_props: PageProps) {
         <a className="mx-auto" href="/">
           <Logo width={64} height={64} />
         </a>
-        <h1 class="mx-auto text-[48px] font-semibold text-fraunces text-[var(--text-color)]">
-          500!
-        </h1>
+        <h1 class="mx-auto text-[48px] font-semibold text-fraunces text-[var(--text-color)]">500!</h1>
         <h2 class="sr-only">Internal Server Error</h2>
       </div>
     </>

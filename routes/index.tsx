@@ -21,9 +21,7 @@ export const handler: Handlers<PageData> = {
 export default function Home(props: PageProps<PageData>) {
   return (
     <div class="flex flex-col m-auto w-full md:w-[768px] space-y-4 p-4">
-      <h1 class="mx-auto text-[48px] text-fraunces font-semibold text-[var(--text-color)]">
-        fetch!
-      </h1>
+      <h1 class="mx-auto text-[48px] text-fraunces font-semibold text-[var(--text-color)]">fetch!</h1>
       <SearchInput hasError={!props.data.hasCoreVersion} />
     </div>
   );

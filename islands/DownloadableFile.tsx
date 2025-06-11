@@ -3,6 +3,7 @@ import CircularProgress from "../components/CircularProgress.tsx";
 import OutlinedButton from "../components/OutlinedButton.tsx";
 import { SHRUGGING } from "../constants/index.ts";
 import useCountDown from "../hooks/useCountDown.ts";
+import useDownloadableFile from "../hooks/useDownloadableFile.ts";
 import useStreamableFormat from "../hooks/useStreamableFormat.ts";
 import { downloadFile } from "../utils/index.ts";
 
@@ -11,78 +12,67 @@ interface DownloadableFileProps {
 }
 
 export default function DownloadableFile(props: DownloadableFileProps) {
-  const { data: stream, loading, error } = useStreamableFormat(props.oneTimeToken);
-  const hasError = useComputed(() => Boolean(error.value));
-  const isFileDestroyed = useSignal(false);
+  const { data: streamData, loading: streamLoading, error: streamError } = useStreamableFormat(props.oneTimeToken);
+  const {
+    data,
+    loading,
+    error,
+    refetch: refetchFileName,
+  } = useDownloadableFile(streamData.value.fileName, {
+    onMount: false,
+  });
+
+  const globalProgress = useComputed(() => data.value.progress || streamData.value.progress);
+  const globalLoading = useComputed(() => loading.value || streamLoading.value);
+  const hasError = useComputed(() => Boolean(error.value || streamError.value));
+
+  const isFileAvailable = useSignal(true);
+  const fileUnavailable = () => {
+    isFileAvailable.value = false;
+  };
+
   const [
-    {
-      remainingTime,
-      isRunning,
-      hasStarted,
-    },
-    {
-      start: startCountDown,
-      pause: pauseCountDown,
-      resume: resumeCountDown,
-      stop: stopCountDown,
-    },
+    { remainingTime, isRunning, isDone: isCountDone, hasStarted },
+    { start: startCountDown, pause: pauseCountDown, resume: resumeCountDown, stop: stopCountDown },
   ] = useCountDown({
     duration: 60,
     autoStart: false,
-    onEnd: () => {
-      isFileDestroyed.value = true;
-    },
+    onEnd: () => fileUnavailable(),
   });
 
-  const isCountDone = useComputed(() => remainingTime.value === 0);
   const disabledBtn = useComputed(() => {
-    return Boolean(loading.value || isFileDestroyed.value || isCountDone.value || !stream.value.fileName);
+    return Boolean(globalLoading.value || !isFileAvailable.value || isCountDone.value || !streamData.value.fileName);
   });
 
   useSignalEffect(() => {
-    if (!hasStarted.value && !loading.value && stream.value.fileName) {
+    if (!hasStarted.value && !streamLoading.value && streamData.value.fileName) {
       startCountDown();
     }
   });
 
-  const handleClick = async (fileName: string) => {
-    pauseCountDown();
-    const encodedFileName = encodeURIComponent(fileName);
-
-    try {
-      const res = await fetch(`/api/download/${encodedFileName}`);
-      if (!res.ok) throw new Error("Unable to Read the Stream");
-
-      const blob = await res.blob();
-      downloadFile(new File([blob], fileName));
-      isFileDestroyed.value = true;
+  useSignalEffect(() => {
+    if (isFileAvailable.value && !loading.value && data.value.blob) {
+      downloadFile(new File([data.value.blob], streamData.value.fileName));
+      fileUnavailable();
       stopCountDown();
-    } catch {
-      resumeCountDown();
     }
-  };
+  });
 
   return (
     <div class="flex h-full">
       {!hasError.value && (
         <div className="m-auto flex flex-col items-center">
-          <CircularProgress
-            className="mx-auto"
-            progress={stream.value.progress}
-            disabled={isFileDestroyed.value}
-          />
+          <CircularProgress className="mx-auto" progress={globalProgress.value} disabled={!isFileAvailable.value} />
 
           <div class="flex flex-col items-center">
-            {isRunning.value && !isFileDestroyed.value && (
+            {isRunning.value && isFileAvailable.value && (
               <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">
                 File Self-Destructs In <span class="font-semibold">{remainingTime.value}</span> Sec
                 {remainingTime.value > 1 ? "s" : ""}
               </p>
             )}
-            {!isRunning.value && isFileDestroyed.value && (
-              <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">
-                File Destroyed !
-              </p>
+            {!isRunning.value && !isFileAvailable.value && (
+              <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">File No Longer Available !</p>
             )}
           </div>
 
@@ -90,15 +80,18 @@ export default function DownloadableFile(props: DownloadableFileProps) {
             className="z-10 py-2"
             outlined
             rounded
-            onClick={() => handleClick(stream.value.fileName)}
+            onClick={() => {
+              pauseCountDown();
+              refetchFileName().catch(resumeCountDown);
+            }}
             disabled={disabledBtn.value}
           >
-            {loading.value ? "Loading" : "Download"}
+            {globalLoading.value ? "Loading" : "Download"}
           </OutlinedButton>
         </div>
       )}
 
-      {hasError.value && (
+      {streamError.value && (
         <div class="m-auto flex flex-col items-center">
           <div class="relative">
             <span class="text-[48px] text-mono font-semibold text-[var(--primary-color)]">{SHRUGGING}</span>
@@ -107,11 +100,7 @@ export default function DownloadableFile(props: DownloadableFileProps) {
             </span>
           </div>
 
-          {error.value && (
-            <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">
-              {error.value.message}
-            </p>
-          )}
+          <p class="mt-[12px] mb-6 text-[14px] text-[var(--text-color-secondary)]">{streamError.value.message}</p>
 
           <a
             href="/"

@@ -11,11 +11,7 @@ export default function CircularProgress({ className, progress, disabled }: Circ
 
   return (
     <div class={clsx(className, "relative size-40")}>
-      <svg
-        class="size-full rotate-[135deg]"
-        viewBox="0 0 36 36"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg class="size-full rotate-[135deg]" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
         <circle
           cx="18"
           cy="18"

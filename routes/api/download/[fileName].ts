@@ -17,6 +17,7 @@ export const handler: Handlers = {
         status: 200,
         headers: {
           "Content-Type": "application/octet-stream",
+          "Content-Length": `${blob.size}`,
         },
       });
     } catch {

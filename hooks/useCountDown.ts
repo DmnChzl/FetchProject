@@ -3,6 +3,7 @@ import { Signal, useComputed, useSignal, useSignalEffect } from "@preact/signals
 interface UseCountDownState {
   remainingTime: Signal<number>;
   isRunning: Signal<boolean>;
+  isDone: Signal<boolean>;
   hasStarted: Signal<boolean>;
 }
 
@@ -28,6 +29,7 @@ export default function useCountDown({
   const remainingTime = useSignal(duration);
   const isRunning = useSignal(autoStart);
   const timerRef = useSignal<number | null>(null);
+  const isDone = useComputed(() => remainingTime.value === 0);
   const hasStarted = useComputed(() => remainingTime.value < duration);
 
   const clearTimer = () => {
@@ -87,7 +89,7 @@ export default function useCountDown({
   });
 
   return [
-    { remainingTime, isRunning, hasStarted },
+    { remainingTime, isRunning, isDone, hasStarted },
     { start, pause, resume, stop, reset },
   ];
 }

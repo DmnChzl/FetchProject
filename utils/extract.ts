@@ -31,9 +31,7 @@ export const extractFormats = (raw: string) => {
     throw new Error("Required Headers Not Found");
   }
 
-  const headerLine = lines[headerIdx]
-    .replace(/[│]/g, " ")
-    .replace(/MORE INFO/g, ""); // * EXCLUDE *
+  const headerLine = lines[headerIdx].replace(/[│]/g, " ").replace(/MORE INFO/g, ""); // * EXCLUDE *
 
   const bodyLines = lines.slice(headerIdx + 2).map((line) => {
     return line
@@ -71,9 +69,9 @@ export const extractFormats = (raw: string) => {
     });
 
     const implicitFormat = headerRanges.reduce((acc, hRange) => {
-      const isIntersection = valueRanges.find((vRanges) => (
-        vRanges.endIdx > hRange.startIdx && vRanges.startIdx < hRange.endIdx
-      ));
+      const isIntersection = valueRanges.find(
+        (vRanges) => vRanges.endIdx > hRange.startIdx && vRanges.startIdx < hRange.endIdx,
+      );
 
       if (isIntersection) {
         acc = {

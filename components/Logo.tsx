@@ -6,14 +6,7 @@ interface LogoProps {
 
 export default function Logo({ width = 256, height = 256, ...props }: LogoProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={width}
-      height={height}
-      viewBox="0 0 512 512"
-      fill="none"
-      {...props}
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 512 512" fill="none" {...props}>
       <path
         class="fill-[var(--primary-color)]"
         d="M0 64C0 28.654 28.654 0 64 0h384c35.346 0 64 28.654 64 64v384c0 35.346-28.654 64-64 64H64c-35.346 0-64-28.654-64-64z"

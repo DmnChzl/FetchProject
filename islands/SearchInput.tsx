@@ -49,8 +49,12 @@ export default function SearchInput({ defaultValue = "", hasError = false }: Sea
         placeholder="https://"
         type="text"
         value={inputText.value}
-        onInput={(event) => inputText.value = event.currentTarget.value}
-        style={{ appearance: "none", backgroundColor: "transparent", outline: "none" }}
+        onInput={(event) => (inputText.value = event.currentTarget.value)}
+        style={{
+          appearance: "none",
+          backgroundColor: "transparent",
+          outline: "none",
+        }}
         disabled={hasError}
       />
 
